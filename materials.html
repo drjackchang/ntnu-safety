@@ -8,76 +8,57 @@
 </head>
 <body>
 
-<header class="site-header">
-  <div class="wrap">
-    <div class="brand" id="brandText">Safety Education</div>
-    <nav class="site-nav">
-      <a href="index.html" id="navHome">Home</a>
-      <a href="materials.html" id="navMaterials">Materials</a>
-      <a href="showcase.html" id="navShowcase">Showcase</a>
-      <a href="submit.html" id="navSubmit">Submit</a>
-    </nav>
-  </div>
-</header>
+<header class="site-header"><div id="navHost"></div></header>
+<div id="mobileNavHost"></div>
 
 <div class="wrap">
-  <div class="course-toggle">
-    <button id="btnEmi">Safety Education (EMI)</button>
-    <button id="btnGrad">安全教育專題研究</button>
-  </div>
+  <div id="segHost"></div>
+  <div class="semester-select-wrap"><select class="glass-select" id="semesterSelect"></select></div>
 
-  <h1 id="pageTitle">Course materials</h1>
-  <div class="grid" id="materialsGrid" style="grid-template-columns: 1fr;"><p class="empty-state">Loading…</p></div>
+  <h1 id="pageTitle">Materials</h1>
+  <div class="grid" id="materialsGrid" style="grid-template-columns: 1fr;"><p class="empty-state" id="loadingText"></p></div>
 </div>
 
 <script src="config.js"></script>
 <script src="app.js"></script>
 <script>
-function applyCourseUI() {
-  const course = getCourse();
-  document.getElementById("btnEmi").classList.toggle("active", course === "emi");
-  document.getElementById("btnGrad").classList.toggle("active", course === "grad");
-  const isEmi = course === "emi";
-  document.getElementById("brandText").textContent = isEmi ? "Safety Education" : "安全教育專題研究";
-  document.getElementById("navHome").textContent = isEmi ? "Home" : "首頁";
-  document.getElementById("navMaterials").textContent = t("materials");
-  document.getElementById("navShowcase").textContent = t("showcase");
-  document.getElementById("navSubmit").textContent = t("submit");
-  document.getElementById("pageTitle").textContent = t("materials");
-  loadMaterials();
+async function init() {
+  document.body.setAttribute("data-course", getCourse());
+  renderNav("materials");
+  renderCourseSegmented(document.getElementById("segHost"), () => { document.body.setAttribute("data-course", getCourse()); renderNav("materials"); applyText(); load(); });
+  await populateSemesterSelect(document.getElementById("semesterSelect"));
+  document.getElementById("semesterSelect").addEventListener("change", (e) => { setSemester(e.target.value); load(); });
+  applyText();
+  await load();
 }
-
-async function loadMaterials() {
+function applyText() {
+  document.getElementById("pageTitle").textContent = t("materials");
+  document.getElementById("loadingText").textContent = t("loading");
+}
+async function load() {
   const course = getCourse();
-  const materials = await fetchJSON({ action: "materials", course });
+  const semester = getSemester();
+  const materials = await fetchJSON({ action: "materials", course, semester });
   const grid = document.getElementById("materialsGrid");
-  if (!materials.length) {
-    grid.innerHTML = `<p class="empty-state">${t("noMaterials")}</p>`;
-    return;
-  }
+  if (!materials.length) { grid.innerHTML = `<p class="empty-state">${t("noMaterials")}</p>`; return; }
+
   const weekKey = course === "emi" ? "Week" : "週次";
   const dateKey = course === "emi" ? "Date" : "日期";
   const topicKey = course === "emi" ? "Topic" : "主題";
   const descKey = course === "emi" ? "Description" : "說明";
   const linkKey = course === "emi" ? "FileLink" : "檔案連結";
 
-  grid.innerHTML = materials
-    .map((m) => {
-      const link = m[linkKey] ? `<div style="margin-top:8px;"><a class="btn secondary" href="${escapeHtml(m[linkKey])}" target="_blank" rel="noopener">↗</a></div>` : "";
-      return `<div class="card">
-        <p class="week-tag">${t("week")} ${escapeHtml(m[weekKey])}${m[dateKey] ? " · " + escapeHtml(m[dateKey]) : ""}</p>
-        <p class="card-title">${escapeHtml(m[topicKey])}</p>
-        <p class="card-desc">${escapeHtml(m[descKey])}</p>
-        ${link}
-      </div>`;
-    })
-    .join("");
+  grid.innerHTML = materials.map((m) => {
+    const link = m[linkKey] ? `<div style="margin-top:8px;"><a class="btn secondary" href="${escapeHtml(m[linkKey])}" target="_blank" rel="noopener">↗</a></div>` : "";
+    return `<div class="card">
+      <p class="week-tag">${t("week")} ${escapeHtml(m[weekKey])}${m[dateKey] ? " · " + escapeHtml(m[dateKey]) : ""}</p>
+      <p class="card-title">${escapeHtml(m[topicKey])}</p>
+      <p class="card-desc">${escapeHtml(m[descKey])}</p>
+      ${link}
+    </div>`;
+  }).join("");
 }
-
-document.getElementById("btnEmi").addEventListener("click", () => { setCourse("emi"); applyCourseUI(); });
-document.getElementById("btnGrad").addEventListener("click", () => { setCourse("grad"); applyCourseUI(); });
-
-applyCourseUI();
+init();
 </script>
 </body>
 </html>

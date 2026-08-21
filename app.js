@@ -1,84 +1,42 @@
-// ---------- Course state (persisted across pages) ----------
-function getCourse() {
-  return localStorage.getItem("course") || "emi"; // "emi" | "grad"
-}
-function setCourse(course) {
-  localStorage.setItem("course", course);
-}
+// ---------- Course / semester state ----------
+function getCourse() { return localStorage.getItem("course") || "emi"; }
+function setCourse(course) { localStorage.setItem("course", course); document.body.setAttribute("data-course", course); }
+
+function getSemester() { return localStorage.getItem("semester") || ""; }
+function setSemester(sem) { localStorage.setItem("semester", sem); }
 
 // ---------- i18n ----------
 const I18N = {
   emi: {
-    materials: "Course materials",
-    showcase: "Student showcase",
-    submit: "Submit assignment",
-    viewAll: "View all",
-    week: "Week",
-    semester: "Semester",
-    group: "Group",
-    names: "Names",
-    title: "Title",
-    viewProject: "View project",
-    notFound: "This project could not be found.",
-    backToShowcase: "Back to showcase",
-    course: "Course",
-    groupNumber: "Group number",
-    assignmentName: "Assignment / week",
-    submissionLink: "Submission link",
-    notes: "Notes (optional)",
-    send: "Submit",
-    sending: "Submitting…",
-    sentOk: "Submitted. Thanks!",
-    sentErr: "Something went wrong. Try again.",
-    requiredField: "This field is required.",
-    invalidUrl: "Enter a valid URL (starting with http).",
-    comments: "Discussion",
-    yourName: "Your name",
-    yourMessage: "Write a message…",
-    post: "Post",
-    noComments: "No comments yet — be the first.",
-    filterAll: "All semesters",
-    noMaterials: "No materials posted yet.",
-    noShowcase: "No projects posted yet.",
+    materials: "Materials", showcase: "Showcase", submit: "Submit", progress: "Progress",
+    home: "Home", week: "Week", semester: "Semester", group: "Group", names: "Names", title: "Title",
+    viewProject: "View project", notFound: "This project could not be found.", backToShowcase: "Back to showcase",
+    course: "Course", groupNumber: "Group number", assignmentName: "Assignment / week", submissionLink: "Submission link",
+    notes: "Notes (optional)", send: "Submit", sending: "Submitting…", sentOk: "Submitted. Thanks!",
+    sentErr: "Something went wrong. Try again.", requiredField: "This field is required.",
+    invalidUrl: "Enter a valid URL (starting with http).", comments: "Discussion", yourName: "Your name",
+    yourMessage: "Write a message…", post: "Post", noComments: "No comments yet — be the first.",
+    filterAll: "All semesters", noMaterials: "No materials posted yet.", noShowcase: "No projects posted yet.",
+    yourGroup: "Your group", progressWeek: "Week", progressText: "What did you accomplish this week?",
+    progressLink: "Link (optional)", pastEntries: "Past entries", noProgress: "No progress entries yet.",
+    selectGroup: "Select your group", selectName: "Select your name", loading: "Loading…",
   },
   grad: {
-    materials: "上課素材",
-    showcase: "歷年學生成果",
-    submit: "提交作業／連結",
-    viewAll: "查看全部",
-    week: "週次",
-    semester: "學期",
-    group: "組別",
-    names: "姓名",
-    title: "標題",
-    viewProject: "查看作品",
-    notFound: "找不到這個作品。",
-    backToShowcase: "回到成果列表",
-    course: "課程",
-    groupNumber: "組別（若適用）",
-    assignmentName: "作業／對應週次",
-    submissionLink: "提交連結",
-    notes: "備註（選填）",
-    send: "送出",
-    sending: "送出中…",
-    sentOk: "已送出，謝謝！",
-    sentErr: "送出失敗，請再試一次。",
-    requiredField: "此欄位為必填。",
-    invalidUrl: "請輸入正確的網址格式（需以 http 開頭）。",
-    comments: "討論區",
-    yourName: "您的姓名",
-    yourMessage: "輸入留言…",
-    post: "送出留言",
-    noComments: "目前尚無留言，成為第一個留言的人吧。",
-    filterAll: "所有學期",
-    noMaterials: "目前尚無上課素材。",
-    noShowcase: "目前尚無作品成果。",
+    materials: "上課素材", showcase: "歷年學生成果", submit: "提交作業", progress: "進度回報",
+    home: "首頁", week: "週次", semester: "學期", group: "組別", names: "姓名", title: "標題",
+    viewProject: "查看作品", notFound: "找不到這個作品。", backToShowcase: "回到成果列表",
+    course: "課程", groupNumber: "組別（若適用）", assignmentName: "作業／對應週次", submissionLink: "提交連結",
+    notes: "備註（選填）", send: "送出", sending: "送出中…", sentOk: "已送出，謝謝！",
+    sentErr: "送出失敗，請再試一次。", requiredField: "此欄位為必填。",
+    invalidUrl: "請輸入正確的網址格式（需以 http 開頭）。", comments: "討論區", yourName: "您的姓名",
+    yourMessage: "輸入留言…", post: "送出留言", noComments: "目前尚無留言，成為第一個留言的人吧。",
+    filterAll: "所有學期", noMaterials: "目前尚無上課素材。", noShowcase: "目前尚無作品成果。",
+    yourGroup: "您的組別", progressWeek: "週次", progressText: "這週完成了什麼進度？",
+    progressLink: "連結（選填）", pastEntries: "過往紀錄", noProgress: "目前尚無進度紀錄。",
+    selectGroup: "選擇您的組別", selectName: "選擇您的姓名", loading: "載入中…",
   },
 };
-function t(key) {
-  const course = getCourse();
-  return (I18N[course] && I18N[course][key]) || I18N.emi[key] || key;
-}
+function t(key) { const c = getCourse(); return (I18N[c] && I18N[c][key]) || I18N.emi[key] || key; }
 
 // ---------- API helpers ----------
 async function fetchJSON(params) {
@@ -87,9 +45,6 @@ async function fetchJSON(params) {
   const res = await fetch(url.toString());
   return res.json();
 }
-
-// Uses text/plain content-type so the browser treats this as a "simple request"
-// and skips the CORS preflight — Apps Script Web Apps don't handle OPTIONS well.
 async function postAction(payload) {
   const res = await fetch(GAS_URL, {
     method: "POST",
@@ -99,19 +54,112 @@ async function postAction(payload) {
   return res.json();
 }
 
+// ---------- Semester bootstrapping ----------
+// Loads Config + available semesters, defaults localStorage to ACTIVE_SEMESTER
+// the first time a visitor shows up with nothing set yet.
+async function ensureSemester() {
+  if (getSemester()) return getSemester();
+  const cfg = await fetchJSON({ action: "config" });
+  const active = (cfg && cfg.ACTIVE_SEMESTER) || "";
+  setSemester(active);
+  return active;
+}
+
+async function populateSemesterSelect(selectEl) {
+  const [semesters, current] = await Promise.all([
+    fetchJSON({ action: "semesters" }),
+    ensureSemester(),
+  ]);
+  const list = semesters && semesters.length ? semesters : [current].filter(Boolean);
+  selectEl.innerHTML = list.map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+  selectEl.value = current;
+  if (!selectEl.value && list.length) { selectEl.value = list[0]; setSemester(list[0]); }
+}
+
+// ---------- Nav (desktop pill + mobile floating tab bar) ----------
+const ICONS = {
+  home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',
+  materials: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+  showcase: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  submit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>',
+  progress: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>',
+};
+
+function renderNav(activePage) {
+  const isEmi = getCourse() === "emi";
+  const brand = isEmi ? "Safety Education" : "安全教育專題研究";
+  const items = [
+    ["index.html", "home", t("home")],
+    ["materials.html", "materials", t("materials")],
+    ["showcase.html", "showcase", t("showcase")],
+    ["submit.html", "submit", t("submit")],
+    ["progress.html", "progress", t("progress")],
+  ];
+
+  const desktopHost = document.getElementById("navHost");
+  if (desktopHost) {
+    desktopHost.innerHTML = `
+      <div class="nav-glass">
+        <div class="brand">${brand}</div>
+        <nav class="site-nav">
+          ${items.map(([href, key, label]) => `<a href="${href}" class="${key === activePage ? "active" : ""}">${label}</a>`).join("")}
+        </nav>
+      </div>`;
+  }
+  const mobileHost = document.getElementById("mobileNavHost");
+  if (mobileHost) {
+    mobileHost.innerHTML = `
+      <div class="mobile-tabbar">
+        ${items.map(([href, key, label]) => `<a href="${href}" class="${key === activePage ? "active" : ""}">${ICONS[key] || ""}<span>${label}</span></a>`).join("")}
+      </div>`;
+  }
+}
+
+// ---------- Glass segmented control (course switcher) ----------
+function renderCourseSegmented(hostEl, onChange) {
+  hostEl.innerHTML = `
+    <div class="segmented" id="courseSeg">
+      <div class="thumb" id="courseThumb"></div>
+      <button data-val="emi">Safety Education (EMI)</button>
+      <button data-val="grad">安全教育專題研究</button>
+    </div>`;
+  const seg = hostEl.querySelector("#courseSeg");
+  const thumb = hostEl.querySelector("#courseThumb");
+  const buttons = [...seg.querySelectorAll("button")];
+
+  function positionThumb() {
+    const active = seg.querySelector("button.active");
+    if (!active) return;
+    thumb.style.left = active.offsetLeft + "px";
+    thumb.style.width = active.offsetWidth + "px";
+  }
+  function applyActive() {
+    const course = getCourse();
+    buttons.forEach((b) => b.classList.toggle("active", b.dataset.val === course));
+    positionThumb();
+  }
+  buttons.forEach((b) => {
+    b.addEventListener("click", () => {
+      setCourse(b.dataset.val);
+      applyActive();
+      onChange && onChange(b.dataset.val);
+    });
+  });
+  applyActive();
+  window.addEventListener("resize", positionThumb);
+  return { refresh: applyActive };
+}
+
 // ---------- Canvas cover generator ----------
-// Draws a flat-color cover with title / names / semester onto the given canvas.
-// Works for both the small showcase-grid size and the large project-page size.
 function generateCoverCanvas(canvasEl, { title, names, semester, colorHex }) {
   const w = canvasEl.width || 400;
   const h = canvasEl.height || 220;
   const ctx = canvasEl.getContext("2d");
-  const color = "#" + (colorHex || "1D9E75").replace("#", "");
+  const color = "#" + (colorHex || "0A84FF").replace("#", "");
 
   ctx.fillStyle = color;
   ctx.fillRect(0, 0, w, h);
 
-  // simple luminance check to pick readable text color
   const r = parseInt(color.slice(1, 3), 16);
   const g = parseInt(color.slice(3, 5), 16);
   const b = parseInt(color.slice(5, 7), 16);
@@ -126,32 +174,23 @@ function generateCoverCanvas(canvasEl, { title, names, semester, colorHex }) {
   const titleSize = Math.max(14, Math.round(w * 0.065));
   ctx.font = `600 ${titleSize}px -apple-system, "Microsoft JhengHei", sans-serif`;
 
-  // wrap title text to fit width
   const words = String(title || "").split(/\s+/);
   const lines = [];
   let line = "";
   words.forEach((word) => {
     const test = line ? line + " " + word : word;
-    if (ctx.measureText(test).width > w - pad * 2 && line) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = test;
-    }
+    if (ctx.measureText(test).width > w - pad * 2 && line) { lines.push(line); line = word; }
+    else line = test;
   });
   if (line) lines.push(line);
-  const maxLines = 3;
-  const shownLines = lines.slice(0, maxLines);
+  const shownLines = lines.slice(0, 3);
 
   const lineHeight = titleSize * 1.25;
   const subSize = Math.max(11, Math.round(w * 0.035));
   const bottomBlockHeight = shownLines.length * lineHeight + subSize * 1.6 + 10;
   let y = h - bottomBlockHeight + titleSize;
 
-  shownLines.forEach((l) => {
-    ctx.fillText(l, pad, y);
-    y += lineHeight;
-  });
+  shownLines.forEach((l) => { ctx.fillText(l, pad, y); y += lineHeight; });
 
   ctx.font = `400 ${subSize}px -apple-system, "Microsoft JhengHei", sans-serif`;
   ctx.fillStyle = subColor;
@@ -164,22 +203,13 @@ async function loadComments(container, topic, pollMs) {
   async function refresh() {
     const items = await fetchJSON({ action: "comments", topic });
     const list = container.querySelector(".comment-list");
-    if (!items.length) {
-      list.innerHTML = `<p class="empty-state">${t("noComments")}</p>`;
-      return;
-    }
-    list.innerHTML = items
-      .slice()
-      .reverse()
-      .map(
-        (c) => `
+    if (!items.length) { list.innerHTML = `<p class="empty-state">${t("noComments")}</p>`; return; }
+    list.innerHTML = items.slice().reverse().map((c) => `
       <div class="comment-item">
         <span class="who">${escapeHtml(c.Name || "")}</span>
         <span class="when">${formatTime(c.Timestamp)}</span>
         <div>${escapeHtml(c.Message || "")}</div>
-      </div>`
-      )
-      .join("");
+      </div>`).join("");
   }
   await refresh();
   if (pollMs) setInterval(refresh, pollMs);
@@ -190,26 +220,16 @@ async function loadComments(container, topic, pollMs) {
     const msgEl = container.querySelector('[name="message"]');
     const errEl = container.querySelector(".comment-error");
     errEl.textContent = "";
-    if (!nameEl.value.trim() || !msgEl.value.trim()) {
-      errEl.textContent = t("requiredField");
-      return;
-    }
-    await postAction({
-      action: "comment",
-      course: getCourse(),
-      topic,
-      name: nameEl.value.trim(),
-      message: msgEl.value.trim(),
-    });
+    if (!nameEl.value.trim() || !msgEl.value.trim()) { errEl.textContent = t("requiredField"); return; }
+    await postAction({ action: "comment", course: getCourse(), semester: getSemester(), topic, name: nameEl.value.trim(), message: msgEl.value.trim() });
     msgEl.value = "";
     await refresh();
   });
 }
-
 function renderCommentsBox(container, topic) {
   container.innerHTML = `
-    <div class="comments-box">
-      <h2>${t("comments")}</h2>
+    <div class="comments-box glass-panel" style="padding:20px 22px;">
+      <h2 style="margin-top:0;">${t("comments")}</h2>
       <div class="comment-list"></div>
       <form class="comment-form stack" style="margin-top:14px;">
         <label>${t("yourName")}<input name="name" type="text" /></label>
@@ -231,6 +251,4 @@ function formatTime(ts) {
   if (isNaN(d.getTime())) return "";
   return d.toLocaleString();
 }
-function isValidUrl(str) {
-  return /^https?:\/\/.+/i.test(str);
-}
+function isValidUrl(str) { return /^https?:\/\/.+/i.test(str); }

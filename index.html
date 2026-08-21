@@ -8,107 +8,104 @@
 </head>
 <body>
 
-<header class="site-header">
-  <div class="wrap">
-    <div class="brand" id="brandText">Safety Education</div>
-    <nav class="site-nav">
-      <a href="index.html" id="navHome">Home</a>
-      <a href="materials.html" id="navMaterials">Materials</a>
-      <a href="showcase.html" id="navShowcase">Showcase</a>
-      <a href="submit.html" id="navSubmit">Submit</a>
-    </nav>
-  </div>
-</header>
+<header class="site-header"><div id="navHost"></div></header>
+<div id="mobileNavHost"></div>
 
 <div class="wrap">
-  <div class="course-toggle">
-    <button id="btnEmi">Safety Education (EMI)</button>
-    <button id="btnGrad">安全教育專題研究</button>
-  </div>
+  <div id="segHost"></div>
+  <div class="semester-select-wrap"><select class="glass-select" id="semesterSelect"></select></div>
 
   <h1 id="pageTitle">Safety Education</h1>
   <p class="lead" id="pageLead">Course materials, past student projects, and assignment links for this course.</p>
 
-  <h2 id="materialsHeading">Course materials</h2>
-  <div class="grid" id="materialsGrid"><p class="empty-state">Loading…</p></div>
+  <h2 id="materialsHeading">Materials</h2>
+  <div class="grid" id="materialsGrid"><p class="empty-state" id="materialsLoading"></p></div>
   <p style="margin-top:14px;"><a class="btn secondary" href="materials.html" id="linkAllMaterials">View all</a></p>
 
-  <h2 id="showcaseHeading">Student showcase</h2>
-  <div class="grid" id="showcaseGrid"><p class="empty-state">Loading…</p></div>
+  <h2 id="groupsHeading" style="display:none;">This semester's groups</h2>
+  <div class="grid" id="groupsGrid"></div>
+
+  <h2 id="showcaseHeading">Showcase</h2>
+  <div class="grid" id="showcaseGrid"><p class="empty-state" id="showcaseLoading"></p></div>
   <p style="margin-top:14px;"><a class="btn secondary" href="showcase.html" id="linkAllShowcase">View all</a></p>
 </div>
 
 <script src="config.js"></script>
 <script src="app.js"></script>
 <script>
-function applyCourseUI() {
-  const course = getCourse();
-  document.getElementById("btnEmi").classList.toggle("active", course === "emi");
-  document.getElementById("btnGrad").classList.toggle("active", course === "grad");
+async function init() {
+  document.body.setAttribute("data-course", getCourse());
+  renderNav("home");
+  renderCourseSegmented(document.getElementById("segHost"), () => { document.body.setAttribute("data-course", getCourse()); renderNav("home"); applyText(); loadAll(); });
+  await populateSemesterSelect(document.getElementById("semesterSelect"));
+  document.getElementById("semesterSelect").addEventListener("change", (e) => { setSemester(e.target.value); loadAll(); });
+  applyText();
+  await loadAll();
+}
 
-  const isEmi = course === "emi";
-  document.getElementById("brandText").textContent = isEmi ? "Safety Education" : "安全教育專題研究";
+function applyText() {
+  const isEmi = getCourse() === "emi";
   document.getElementById("pageTitle").textContent = isEmi ? "Safety Education" : "安全教育專題研究";
   document.getElementById("pageLead").textContent = isEmi
     ? "Course materials, past student projects, and assignment links for this course."
     : "課程素材、歷年學生成果與作業連結。";
-  document.getElementById("navHome").textContent = isEmi ? "Home" : "首頁";
-  document.getElementById("navMaterials").textContent = t("materials");
-  document.getElementById("navShowcase").textContent = t("showcase");
-  document.getElementById("navSubmit").textContent = t("submit");
   document.getElementById("materialsHeading").textContent = t("materials");
   document.getElementById("showcaseHeading").textContent = t("showcase");
-  document.getElementById("linkAllMaterials").textContent = t("viewAll");
-  document.getElementById("linkAllShowcase").textContent = t("viewAll");
-
-  loadPreview();
+  document.getElementById("linkAllMaterials").textContent = t("viewAll") || "View all";
+  document.getElementById("linkAllShowcase").textContent = t("viewAll") || "View all";
+  document.getElementById("materialsLoading").textContent = t("loading");
+  document.getElementById("showcaseLoading").textContent = t("loading");
+  document.getElementById("groupsHeading").style.display = isEmi ? "block" : "none";
 }
 
-async function loadPreview() {
+async function loadAll() {
   const course = getCourse();
+  const semester = getSemester();
 
-  const materials = await fetchJSON({ action: "materials", course });
+  const materials = await fetchJSON({ action: "materials", course, semester });
   const mGrid = document.getElementById("materialsGrid");
   if (!materials.length) {
     mGrid.innerHTML = `<p class="empty-state">${t("noMaterials")}</p>`;
   } else {
-    mGrid.innerHTML = materials
-      .slice(0, 4)
-      .map((m) => {
-        const weekKey = course === "emi" ? "Week" : "週次";
-        const topicKey = course === "emi" ? "Topic" : "主題";
-        const descKey = course === "emi" ? "Description" : "說明";
-        return `<div class="card">
-          <p class="week-tag">${t("week")} ${escapeHtml(m[weekKey])}</p>
-          <p class="card-title">${escapeHtml(m[topicKey])}</p>
-          <p class="card-desc">${escapeHtml(String(m[descKey] || "").slice(0, 90))}${String(m[descKey] || "").length > 90 ? "…" : ""}</p>
-        </div>`;
-      })
-      .join("");
+    const weekKey = course === "emi" ? "Week" : "週次";
+    const topicKey = course === "emi" ? "Topic" : "主題";
+    const descKey = course === "emi" ? "Description" : "說明";
+    mGrid.innerHTML = materials.slice(0, 4).map((m) => `<div class="card">
+        <p class="week-tag">${t("week")} ${escapeHtml(m[weekKey])}</p>
+        <p class="card-title">${escapeHtml(m[topicKey])}</p>
+        <p class="card-desc">${escapeHtml(String(m[descKey] || "").slice(0, 90))}${String(m[descKey] || "").length > 90 ? "…" : ""}</p>
+      </div>`).join("");
   }
 
-  const showcase = await fetchJSON({ action: "showcase", course });
+  const groupsGrid = document.getElementById("groupsGrid");
+  groupsGrid.innerHTML = "";
+  if (course === "emi") {
+    const students = await fetchJSON({ action: "students", course, semester });
+    const byGroup = {};
+    students.forEach((s) => { const g = s.GroupNumber || "Ungrouped"; (byGroup[g] = byGroup[g] || []).push(s.Name); });
+    const groupNames = Object.keys(byGroup).sort();
+    if (groupNames.length) {
+      groupsGrid.innerHTML = groupNames.map((g) => `<div class="card">
+          <p class="card-title">${escapeHtml(g)}</p>
+          <p class="card-desc">${byGroup[g].map(escapeHtml).join(", ")}</p>
+        </div>`).join("");
+    }
+  }
+
+  const showcase = await fetchJSON({ action: "showcase", course, semester });
   const sGrid = document.getElementById("showcaseGrid");
   if (!showcase.length) {
     sGrid.innerHTML = `<p class="empty-state">${t("noShowcase")}</p>`;
   } else {
-    sGrid.innerHTML = showcase
-      .slice(0, 4)
-      .map((s) => `<a class="showcase-card" href="project.html?id=${encodeURIComponent(s.ID)}">
-          <canvas width="400" height="200" data-title="${escapeHtml(s.Title)}" data-names="${escapeHtml(s.Names)}" data-semester="${escapeHtml(s.Semester)}" data-color="${escapeHtml(s.CoverColorHex)}"></canvas>
-          <div class="meta"><span>${escapeHtml(s.Semester || "")}</span><span>${escapeHtml(s.GroupNumber || "")}</span></div>
-        </a>`)
-      .join("");
-    sGrid.querySelectorAll("canvas").forEach((c) => {
-      generateCoverCanvas(c, { title: c.dataset.title, names: c.dataset.names, semester: c.dataset.semester, colorHex: c.dataset.color });
-    });
+    sGrid.innerHTML = showcase.slice(0, 4).map((s) => `<a class="showcase-card" href="project.html?id=${encodeURIComponent(s.ID)}">
+        <canvas width="400" height="200" data-title="${escapeHtml(s.Title)}" data-names="${escapeHtml(s.Names)}" data-semester="${escapeHtml(s.Semester)}" data-color="${escapeHtml(s.CoverColorHex)}"></canvas>
+        <div class="meta"><span>${escapeHtml(s.Semester || "")}</span><span>${escapeHtml(s.GroupNumber || "")}</span></div>
+      </a>`).join("");
+    sGrid.querySelectorAll("canvas").forEach((c) => generateCoverCanvas(c, { title: c.dataset.title, names: c.dataset.names, semester: c.dataset.semester, colorHex: c.dataset.color }));
   }
 }
 
-document.getElementById("btnEmi").addEventListener("click", () => { setCourse("emi"); applyCourseUI(); });
-document.getElementById("btnGrad").addEventListener("click", () => { setCourse("grad"); applyCourseUI(); });
-
-applyCourseUI();
+init();
 </script>
 </body>
 </html>

@@ -8,17 +8,8 @@
 </head>
 <body>
 
-<header class="site-header">
-  <div class="wrap">
-    <div class="brand" id="brandText">Safety Education</div>
-    <nav class="site-nav">
-      <a href="index.html" id="navHome">Home</a>
-      <a href="materials.html" id="navMaterials">Materials</a>
-      <a href="showcase.html" id="navShowcase">Showcase</a>
-      <a href="submit.html" id="navSubmit">Submit</a>
-    </nav>
-  </div>
-</header>
+<header class="site-header"><div id="navHost"></div></header>
+<div id="mobileNavHost"></div>
 
 <div class="wrap">
   <p><a id="backLink" class="btn secondary" href="showcase.html">← Back</a></p>
@@ -29,51 +20,39 @@
 <script src="config.js"></script>
 <script src="app.js"></script>
 <script>
-function applyNavText() {
-  const isEmi = getCourse() === "emi";
-  document.getElementById("brandText").textContent = isEmi ? "Safety Education" : "安全教育專題研究";
-  document.getElementById("navHome").textContent = isEmi ? "Home" : "首頁";
-  document.getElementById("navMaterials").textContent = t("materials");
-  document.getElementById("navShowcase").textContent = t("showcase");
-  document.getElementById("navSubmit").textContent = t("submit");
-  document.getElementById("backLink").textContent = t("backToShowcase");
-}
-
 async function loadProject() {
-  applyNavText();
+  document.body.setAttribute("data-course", getCourse());
+  renderNav("showcase");
+  document.getElementById("backLink").textContent = t("backToShowcase");
+
   const id = new URLSearchParams(location.search).get("id");
   const content = document.getElementById("content");
-  if (!id) {
-    content.innerHTML = `<p class="empty-state">${t("notFound")}</p>`;
-    return;
-  }
+  if (!id) { content.innerHTML = `<p class="empty-state">${t("notFound")}</p>`; return; }
+
   const results = await fetchJSON({ action: "showcase", id });
-  if (!results.length) {
-    content.innerHTML = `<p class="empty-state">${t("notFound")}</p>`;
-    return;
-  }
+  if (!results.length) { content.innerHTML = `<p class="empty-state">${t("notFound")}</p>`; return; }
   const s = results[0];
-  // switch course context to match the project so labels/comments are consistent
+
   if (s.Course) setCourse(String(s.Course).toLowerCase());
-  applyNavText();
+  document.body.setAttribute("data-course", getCourse());
+  renderNav("showcase");
+  document.getElementById("backLink").textContent = t("backToShowcase");
 
   content.innerHTML = `
-    <canvas id="coverCanvas" width="800" height="380" style="width:100%;height:auto;border-radius:12px;"></canvas>
-    <h1 style="margin-top:20px;">${escapeHtml(s.Title)}</h1>
-    <p class="lead">${[s.GroupNumber, s.Names, s.Semester].filter(Boolean).map(escapeHtml).join("  ·  ")}</p>
-    <p>${escapeHtml(s.Description || "")}</p>
-    ${s.ProjectLink ? `<p><a class="btn" href="${escapeHtml(s.ProjectLink)}" target="_blank" rel="noopener">${t("viewProject")} ↗</a></p>` : ""}
+    <div class="glass-panel" style="padding:0; overflow:hidden;">
+      <canvas id="coverCanvas" width="800" height="380" style="width:100%;height:auto;display:block;"></canvas>
+      <div style="padding:22px 24px;">
+        <h1 style="margin-top:0;">${escapeHtml(s.Title)}</h1>
+        <p class="lead">${[s.GroupNumber, s.Names, s.Semester].filter(Boolean).map(escapeHtml).join("  ·  ")}</p>
+        <p>${escapeHtml(s.Description || "")}</p>
+        ${s.ProjectLink ? `<p><a class="btn" href="${escapeHtml(s.ProjectLink)}" target="_blank" rel="noopener">${t("viewProject")} ↗</a></p>` : ""}
+      </div>
+    </div>
   `;
-  generateCoverCanvas(document.getElementById("coverCanvas"), {
-    title: s.Title,
-    names: s.Names,
-    semester: s.Semester,
-    colorHex: s.CoverColorHex,
-  });
+  generateCoverCanvas(document.getElementById("coverCanvas"), { title: s.Title, names: s.Names, semester: s.Semester, colorHex: s.CoverColorHex });
 
   renderCommentsBox(document.getElementById("commentsHost"), "project-" + s.ID);
 }
-
 loadProject();
 </script>
 </body>

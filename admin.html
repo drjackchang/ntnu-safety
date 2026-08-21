@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="site-header"><div id="navHost"></div></header>
+<div id="mobileNavHost"></div>
+
+<div class="wrap">
+
+  <div class="gate-box glass-panel" id="gateBox">
+    <h1 style="font-size:20px;">Admin access</h1>
+    <p class="lead" style="margin-bottom:16px;">Enter the passphrase set in the Config tab of your Sheet (ADMIN_KEY).</p>
+    <form class="stack" id="gateForm" style="max-width:none;">
+      <input type="password" id="adminKeyInput" placeholder="Passphrase" />
+      <div class="field-error" id="gateError"></div>
+      <button class="btn" type="submit">Unlock</button>
+    </form>
+  </div>
+
+  <div id="adminPanel" style="display:none;">
+    <div id="segHost"></div>
+    <div class="semester-select-wrap" style="gap:8px;">
+      <input class="glass-select" id="newSemesterInput" placeholder="e.g. 115-1" style="width:110px;" />
+      <button class="btn secondary" id="setActiveBtn" type="button">Set as active semester</button>
+      <select class="glass-select" id="semesterSelect"></select>
+    </div>
+
+    <h1>Roster &amp; groups</h1>
+    <p class="lead">Edit names, emails, and group numbers below, then save. This replaces the full roster for the selected course + semester — nothing from other semesters is touched.</p>
+
+    <div class="glass-panel" style="padding:18px 20px; overflow-x:auto;">
+      <table class="roster" id="rosterTable">
+        <thead><tr><th>Name</th><th>Email</th><th id="groupColHeader">Group</th><th></th></tr></thead>
+        <tbody id="rosterBody"></tbody>
+      </table>
+      <button class="btn secondary" id="addRowBtn" type="button" style="margin-top:14px;">+ Add student</button>
+    </div>
+    <div style="margin-top:16px; display:flex; align-items:center; gap:14px;">
+      <button class="btn" id="saveRosterBtn" type="button">Save roster</button>
+      <span class="form-status" id="rosterStatus"></span>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+let adminKey = sessionStorage.getItem("adminKey") || "";
+
+document.getElementById("gateForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const key = document.getElementById("adminKeyInput").value.trim();
+  const errEl = document.getElementById("gateError");
+  errEl.textContent = "";
+  // verify by attempting a harmless config write of the same value it already has
+  const cfg = await fetchJSON({ action: "config" });
+  if (key && cfg.ADMIN_KEY && key === cfg.ADMIN_KEY) {
+    adminKey = key;
+    sessionStorage.setItem("adminKey", key);
+    document.getElementById("gateBox").style.display = "none";
+    document.getElementById("adminPanel").style.display = "block";
+    initPanel();
+  } else {
+    errEl.textContent = "That passphrase doesn't match ADMIN_KEY in the Config tab.";
+  }
+});
+
+if (adminKey) {
+  document.getElementById("gateBox").style.display = "none";
+  document.getElementById("adminPanel").style.display = "block";
+  initPanel();
+}
+
+async function initPanel() {
+  document.body.setAttribute("data-course", getCourse());
+  renderNav("");
+  renderCourseSegmented(document.getElementById("segHost"), () => { document.body.setAttribute("data-course", getCourse()); document.getElementById("groupColHeader").textContent = getCourse() === "emi" ? "Group" : "組別"; loadRoster(); });
+  await populateSemesterSelect(document.getElementById("semesterSelect"));
+  document.getElementById("semesterSelect").addEventListener("change", (e) => { setSemester(e.target.value); loadRoster(); });
+  document.getElementById("groupColHeader").textContent = getCourse() === "emi" ? "Group" : "組別";
+  document.getElementById("addRowBtn").addEventListener("click", () => addRow({ Name: "", Email: "", GroupNumber: "" }));
+  document.getElementById("saveRosterBtn").addEventListener("click", saveRoster);
+  document.getElementById("setActiveBtn").addEventListener("click", setActiveSemester);
+  await loadRoster();
+}
+
+async function loadRoster() {
+  const course = getCourse();
+  const semester = getSemester();
+  const students = await fetchJSON({ action: "students", course, semester });
+  const body = document.getElementById("rosterBody");
+  body.innerHTML = "";
+  students.forEach((s) => addRow(s));
+  if (!students.length) addRow({ Name: "", Email: "", GroupNumber: "" });
+}
+
+function addRow(s) {
+  const body = document.getElementById("rosterBody");
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><input class="f-name" value="${escapeHtml(s.Name || "")}" /></td>
+    <td><input class="f-email" value="${escapeHtml(s.Email || "")}" /></td>
+    <td><input class="f-group" value="${escapeHtml(s.GroupNumber || "")}" /></td>
+    <td><button class="btn secondary" type="button" style="padding:6px 12px;">✕</button></td>
+  `;
+  tr.querySelector("button").addEventListener("click", () => tr.remove());
+  body.appendChild(tr);
+}
+
+async function saveRoster() {
+  const statusEl = document.getElementById("rosterStatus");
+  statusEl.textContent = "Saving…";
+  statusEl.className = "form-status";
+  const rows = [...document.querySelectorAll("#rosterBody tr")].map((tr) => ({
+    name: tr.querySelector(".f-name").value.trim(),
+    email: tr.querySelector(".f-email").value.trim(),
+    groupNumber: tr.querySelector(".f-group").value.trim(),
+  })).filter((r) => r.name);
+
+  const res = await postAction({ action: "admin_save_roster", adminKey, course: getCourse(), semester: getSemester(), students: rows });
+  if (res.ok) { statusEl.textContent = "Saved."; statusEl.classList.add("ok"); }
+  else { statusEl.textContent = "Save failed: " + (res.error || "unknown error"); statusEl.classList.add("error"); }
+}
+
+async function setActiveSemester() {
+  const val = document.getElementById("newSemesterInput").value.trim();
+  if (!val) return;
+  await postAction({ action: "admin_set_config", adminKey, key: "ACTIVE_SEMESTER", value: val });
+  await populateSemesterSelect(document.getElementById("semesterSelect"));
+  setSemester(val);
+  document.getElementById("semesterSelect").value = val;
+  loadRoster();
+}
+</script>
+</body>
+</html>

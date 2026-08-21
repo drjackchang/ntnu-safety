@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Progress</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="site-header"><div id="navHost"></div></header>
+<div id="mobileNavHost"></div>
+
+<div class="wrap">
+  <div id="segHost"></div>
+  <div class="semester-select-wrap"><select class="glass-select" id="semesterSelect"></select></div>
+
+  <h1 id="pageTitle">Progress</h1>
+  <p class="lead" id="pageLead"></p>
+
+  <form class="stack glass-panel" style="padding:22px 24px;" id="progressForm">
+    <label>
+      <span id="lblWho">Group</span>
+      <select name="who" id="whoSelect"></select>
+    </label>
+    <label>
+      <span id="lblWeek">Week</span>
+      <select name="week" id="weekSelect"></select>
+    </label>
+    <label>
+      <span id="lblText">What did you accomplish this week?</span>
+      <textarea name="progressText" rows="4" required></textarea>
+    </label>
+    <label>
+      <span id="lblLink">Link (optional)</span>
+      <input type="text" name="link" placeholder="https://" />
+      <div class="field-error" id="errLink"></div>
+    </label>
+    <div class="field-error" id="errRequired"></div>
+    <button class="btn" type="submit" id="btnSend">Submit</button>
+    <div class="form-status" id="formStatus"></div>
+  </form>
+
+  <h2 id="pastHeading">Past entries</h2>
+  <div class="progress-log" id="progressLog"><p class="empty-state" id="loadingText"></p></div>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+async function init() {
+  document.body.setAttribute("data-course", getCourse());
+  renderNav("progress");
+  renderCourseSegmented(document.getElementById("segHost"), () => { document.body.setAttribute("data-course", getCourse()); renderNav("progress"); applyText(); loadWho(); populateWeeks(); });
+  await populateSemesterSelect(document.getElementById("semesterSelect"));
+  document.getElementById("semesterSelect").addEventListener("change", () => { loadWho(); });
+  applyText();
+  populateWeeks();
+  await loadWho();
+}
+
+function applyText() {
+  const isEmi = getCourse() === "emi";
+  document.getElementById("pageTitle").textContent = t("progress");
+  document.getElementById("pageLead").textContent = isEmi ? "Log your group's weekly progress on the term project." : "記錄您每週的學習或專案進度。";
+  document.getElementById("lblWho").textContent = isEmi ? t("selectGroup") : t("selectName");
+  document.getElementById("lblWeek").textContent = t("progressWeek");
+  document.getElementById("lblText").textContent = t("progressText");
+  document.getElementById("lblLink").textContent = t("progressLink");
+  document.getElementById("btnSend").textContent = t("send");
+  document.getElementById("pastHeading").textContent = t("pastEntries");
+  document.getElementById("loadingText").textContent = t("loading");
+}
+
+function populateWeeks() {
+  const sel = document.getElementById("weekSelect");
+  sel.innerHTML = Array.from({ length: 16 }, (_, i) => i + 1).map((w) => `<option value="${w}">${t("week")} ${w}</option>`).join("");
+}
+
+async function loadWho() {
+  const course = getCourse();
+  const semester = getSemester();
+  const students = await fetchJSON({ action: "students", course, semester });
+  const sel = document.getElementById("whoSelect");
+
+  if (course === "emi") {
+    const groups = [...new Set(students.map((s) => s.GroupNumber).filter(Boolean))].sort();
+    sel.innerHTML = groups.length ? groups.map((g) => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join("") : `<option value="">${t("selectGroup")} — roster not set up yet</option>`;
+  } else {
+    const names = [...new Set(students.map((s) => s.Name).filter(Boolean))].sort();
+    sel.innerHTML = names.length ? names.map((n) => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("") : `<option value="">${t("selectName")} — roster not set up yet</option>`;
+  }
+  sel.onchange = loadLog;
+  await loadLog();
+}
+
+async function loadLog() {
+  const course = getCourse();
+  const semester = getSemester();
+  const subject = document.getElementById("whoSelect").value;
+  const log = document.getElementById("progressLog");
+  if (!subject) { log.innerHTML = `<p class="empty-state">${t("noProgress")}</p>`; return; }
+
+  const entries = await fetchJSON({ action: "progress", course, semester, subject });
+  if (!entries.length) { log.innerHTML = `<p class="empty-state">${t("noProgress")}</p>`; return; }
+
+  log.innerHTML = entries
+    .slice()
+    .sort((a, b) => Number(a.Week) - Number(b.Week))
+    .map((e) => `<div class="progress-entry glass-panel">
+        <div class="pe-head"><span>${t("week")} ${escapeHtml(e.Week)}</span><span>${formatTime(e.Timestamp)}</span></div>
+        <div class="pe-text">${escapeHtml(e.ProgressText)}</div>
+        ${e.Link ? `<div style="margin-top:8px;"><a class="btn secondary" href="${escapeHtml(e.Link)}" target="_blank" rel="noopener">↗</a></div>` : ""}
+      </div>`)
+    .join("");
+}
+
+document.getElementById("progressForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const errRequired = document.getElementById("errRequired");
+  const errLink = document.getElementById("errLink");
+  const statusEl = document.getElementById("formStatus");
+  errRequired.textContent = ""; errLink.textContent = ""; statusEl.textContent = ""; statusEl.className = "form-status";
+
+  const who = form.who.value.trim();
+  const progressText = form.progressText.value.trim();
+  const link = form.link.value.trim();
+
+  if (!who || !progressText) { errRequired.textContent = t("requiredField"); return; }
+  if (link && !isValidUrl(link)) { errLink.textContent = t("invalidUrl"); return; }
+
+  document.getElementById("btnSend").textContent = t("sending");
+  try {
+    const res = await postAction({
+      action: "progress",
+      course: getCourse(), semester: getSemester(),
+      week: form.week.value, groupOrName: who, progressText, link,
+    });
+    if (res.ok) { statusEl.textContent = t("sentOk"); statusEl.classList.add("ok"); form.progressText.value = ""; form.link.value = ""; await loadLog(); }
+    else { statusEl.textContent = t("sentErr"); statusEl.classList.add("error"); }
+  } catch (err) {
+    statusEl.textContent = t("sentErr"); statusEl.classList.add("error");
+  }
+  document.getElementById("btnSend").textContent = t("send");
+});
+
+init();
+</script>
+</body>
+</html>

@@ -8,35 +8,20 @@
 </head>
 <body>
 
-<header class="site-header">
-  <div class="wrap">
-    <div class="brand" id="brandText">Safety Education</div>
-    <nav class="site-nav">
-      <a href="index.html" id="navHome">Home</a>
-      <a href="materials.html" id="navMaterials">Materials</a>
-      <a href="showcase.html" id="navShowcase">Showcase</a>
-      <a href="submit.html" id="navSubmit">Submit</a>
-    </nav>
-  </div>
-</header>
+<header class="site-header"><div id="navHost"></div></header>
+<div id="mobileNavHost"></div>
 
 <div class="wrap">
-  <div class="course-toggle">
-    <button id="btnEmi">Safety Education (EMI)</button>
-    <button id="btnGrad">安全教育專題研究</button>
-  </div>
+  <div id="segHost"></div>
+  <div class="semester-select-wrap"><select class="glass-select" id="semesterSelect"></select></div>
 
-  <h1 id="pageTitle">Submit assignment</h1>
+  <h1 id="pageTitle">Submit</h1>
   <p class="lead" id="pageLead"></p>
 
-  <form class="stack" id="submitForm">
-    <label id="lblGroup" style="display:none;">
-      <span id="lblGroupText">Group number</span>
-      <input type="text" name="groupNumber" placeholder="Group 3" />
-    </label>
+  <form class="stack glass-panel" style="padding:22px 24px;" id="submitForm">
     <label>
-      <span id="lblNames">Names</span>
-      <input type="text" name="names" required />
+      <span id="lblWho">Group</span>
+      <select name="who" id="whoSelect"></select>
     </label>
     <label>
       <span id="lblAssignment">Assignment / week</span>
@@ -60,30 +45,46 @@
 <script src="config.js"></script>
 <script src="app.js"></script>
 <script>
-function applyCourseUI() {
-  const course = getCourse();
-  document.getElementById("btnEmi").classList.toggle("active", course === "emi");
-  document.getElementById("btnGrad").classList.toggle("active", course === "grad");
-  const isEmi = course === "emi";
+async function init() {
+  document.body.setAttribute("data-course", getCourse());
+  renderNav("submit");
+  renderCourseSegmented(document.getElementById("segHost"), () => { document.body.setAttribute("data-course", getCourse()); renderNav("submit"); applyText(); loadWho(); });
+  await populateSemesterSelect(document.getElementById("semesterSelect"));
+  document.getElementById("semesterSelect").addEventListener("change", () => loadWho());
+  applyText();
+  await loadWho();
+}
 
-  document.getElementById("brandText").textContent = isEmi ? "Safety Education" : "安全教育專題研究";
-  document.getElementById("navHome").textContent = isEmi ? "Home" : "首頁";
-  document.getElementById("navMaterials").textContent = t("materials");
-  document.getElementById("navShowcase").textContent = t("showcase");
-  document.getElementById("navSubmit").textContent = t("submit");
+function applyText() {
+  const isEmi = getCourse() === "emi";
   document.getElementById("pageTitle").textContent = t("submit");
-  document.getElementById("pageLead").textContent = isEmi
-    ? "Submit your group's assignment or project link."
-    : "提交您的作業或專案連結。";
-
-  // group field only shown for the EMI (group-based) course
-  document.getElementById("lblGroup").style.display = isEmi ? "flex" : "none";
-  document.getElementById("lblGroupText").textContent = t("groupNumber");
-  document.getElementById("lblNames").textContent = isEmi ? "Group member names" : t("names");
+  document.getElementById("pageLead").textContent = isEmi ? "Submit your group's assignment or project link." : "提交您的作業或專案連結。";
+  document.getElementById("lblWho").textContent = isEmi ? t("selectGroup") : t("selectName");
   document.getElementById("lblAssignment").textContent = t("assignmentName");
   document.getElementById("lblLink").textContent = t("submissionLink");
   document.getElementById("lblNotes").textContent = t("notes");
   document.getElementById("btnSend").textContent = t("send");
+}
+
+// Populates the "who" dropdown from the roster (group numbers for EMI, names for grad).
+// Falls back to a free-text option if no roster is loaded yet for this course+semester.
+async function loadWho() {
+  const course = getCourse();
+  const semester = getSemester();
+  const students = await fetchJSON({ action: "students", course, semester });
+  const sel = document.getElementById("whoSelect");
+
+  if (course === "emi") {
+    const groups = [...new Set(students.map((s) => s.GroupNumber).filter(Boolean))].sort();
+    sel.innerHTML = groups.length
+      ? groups.map((g) => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join("")
+      : `<option value="">${t("selectGroup")} — roster not set up yet</option>`;
+  } else {
+    const names = [...new Set(students.map((s) => s.Name).filter(Boolean))].sort();
+    sel.innerHTML = names.length
+      ? names.map((n) => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("")
+      : `<option value="">${t("selectName")} — roster not set up yet</option>`;
+  }
 }
 
 document.getElementById("submitForm").addEventListener("submit", async (e) => {
@@ -92,54 +93,35 @@ document.getElementById("submitForm").addEventListener("submit", async (e) => {
   const errRequired = document.getElementById("errRequired");
   const errLink = document.getElementById("errLink");
   const statusEl = document.getElementById("formStatus");
-  errRequired.textContent = "";
-  errLink.textContent = "";
-  statusEl.textContent = "";
-  statusEl.className = "form-status";
+  errRequired.textContent = ""; errLink.textContent = ""; statusEl.textContent = ""; statusEl.className = "form-status";
 
-  const names = form.names.value.trim();
+  const who = form.who.value.trim();
   const assignmentName = form.assignmentName.value.trim();
   const submissionLink = form.submissionLink.value.trim();
 
-  if (!names || !assignmentName || !submissionLink) {
-    errRequired.textContent = t("requiredField");
-    return;
-  }
-  if (!isValidUrl(submissionLink)) {
-    errLink.textContent = t("invalidUrl");
-    return;
-  }
+  if (!who || !assignmentName || !submissionLink) { errRequired.textContent = t("requiredField"); return; }
+  if (!isValidUrl(submissionLink)) { errLink.textContent = t("invalidUrl"); return; }
 
   document.getElementById("btnSend").textContent = t("sending");
+  const course = getCourse();
   try {
     const res = await postAction({
       action: "submit",
-      course: getCourse(),
-      groupNumber: form.groupNumber ? form.groupNumber.value.trim() : "",
-      names,
-      assignmentName,
-      submissionLink,
+      course, semester: getSemester(),
+      groupNumber: course === "emi" ? who : "",
+      names: course === "emi" ? "" : who,
+      assignmentName, submissionLink,
       notes: form.notes.value.trim(),
     });
-    if (res.ok) {
-      statusEl.textContent = t("sentOk");
-      statusEl.classList.add("ok");
-      form.reset();
-    } else {
-      statusEl.textContent = t("sentErr");
-      statusEl.classList.add("error");
-    }
+    if (res.ok) { statusEl.textContent = t("sentOk"); statusEl.classList.add("ok"); form.reset(); }
+    else { statusEl.textContent = t("sentErr"); statusEl.classList.add("error"); }
   } catch (err) {
-    statusEl.textContent = t("sentErr");
-    statusEl.classList.add("error");
+    statusEl.textContent = t("sentErr"); statusEl.classList.add("error");
   }
   document.getElementById("btnSend").textContent = t("send");
 });
 
-document.getElementById("btnEmi").addEventListener("click", () => { setCourse("emi"); applyCourseUI(); });
-document.getElementById("btnGrad").addEventListener("click", () => { setCourse("grad"); applyCourseUI(); });
-
-applyCourseUI();
+init();
 </script>
 </body>
 </html>
