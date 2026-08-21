@@ -58,16 +58,23 @@ document.getElementById("gateForm").addEventListener("submit", async (e) => {
   const key = document.getElementById("adminKeyInput").value.trim();
   const errEl = document.getElementById("gateError");
   errEl.textContent = "";
-  // verify by attempting a harmless config write of the same value it already has
+  // verify by comparing against the live Config tab value (whitespace-insensitive)
   const cfg = await fetchJSON({ action: "config" });
-  if (key && cfg.ADMIN_KEY && key === cfg.ADMIN_KEY) {
+  const expected = cfg.ADMIN_KEY ? String(cfg.ADMIN_KEY).trim() : "";
+  if (key && expected && key === expected) {
     adminKey = key;
     sessionStorage.setItem("adminKey", key);
     document.getElementById("gateBox").style.display = "none";
     document.getElementById("adminPanel").style.display = "block";
     initPanel();
   } else {
-    errEl.textContent = "That passphrase doesn't match ADMIN_KEY in the Config tab.";
+    // This gate is a basic shared-secret check, not real security, so it's fine
+    // to show both values directly here — it saves a lot of guessing.
+    errEl.innerHTML = `Doesn't match. You typed: <code>"${escapeHtml(key)}"</code> (${key.length} chars).
+      Backend has ADMIN_KEY: <code>"${escapeHtml(expected)}"</code> (${expected.length} chars).
+      ${!expected ? "The Config tab's ADMIN_KEY looks empty — check that row exists and has a value in column B." : ""}
+      ${expected === "change-me-please" ? "This is still the placeholder value — edit the Config tab." : ""}
+      If the two strings above look identical but still don't match, the Apps Script deployment probably needs a fresh version (Deploy → Manage deployments → edit → Version: New version → Deploy) — editing the Config tab's data doesn't need this, but editing Code.gs does.`;
   }
 });
 
