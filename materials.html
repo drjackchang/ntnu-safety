@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Course Materials</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="brand" id="brandText">Safety Education</div>
+    <nav class="site-nav">
+      <a href="index.html" id="navHome">Home</a>
+      <a href="materials.html" id="navMaterials">Materials</a>
+      <a href="showcase.html" id="navShowcase">Showcase</a>
+      <a href="submit.html" id="navSubmit">Submit</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="course-toggle">
+    <button id="btnEmi">Safety Education (EMI)</button>
+    <button id="btnGrad">安全教育專題研究</button>
+  </div>
+
+  <h1 id="pageTitle">Course materials</h1>
+  <div class="grid" id="materialsGrid" style="grid-template-columns: 1fr;"><p class="empty-state">Loading…</p></div>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+function applyCourseUI() {
+  const course = getCourse();
+  document.getElementById("btnEmi").classList.toggle("active", course === "emi");
+  document.getElementById("btnGrad").classList.toggle("active", course === "grad");
+  const isEmi = course === "emi";
+  document.getElementById("brandText").textContent = isEmi ? "Safety Education" : "安全教育專題研究";
+  document.getElementById("navHome").textContent = isEmi ? "Home" : "首頁";
+  document.getElementById("navMaterials").textContent = t("materials");
+  document.getElementById("navShowcase").textContent = t("showcase");
+  document.getElementById("navSubmit").textContent = t("submit");
+  document.getElementById("pageTitle").textContent = t("materials");
+  loadMaterials();
+}
+
+async function loadMaterials() {
+  const course = getCourse();
+  const materials = await fetchJSON({ action: "materials", course });
+  const grid = document.getElementById("materialsGrid");
+  if (!materials.length) {
+    grid.innerHTML = `<p class="empty-state">${t("noMaterials")}</p>`;
+    return;
+  }
+  const weekKey = course === "emi" ? "Week" : "週次";
+  const dateKey = course === "emi" ? "Date" : "日期";
+  const topicKey = course === "emi" ? "Topic" : "主題";
+  const descKey = course === "emi" ? "Description" : "說明";
+  const linkKey = course === "emi" ? "FileLink" : "檔案連結";
+
+  grid.innerHTML = materials
+    .map((m) => {
+      const link = m[linkKey] ? `<div style="margin-top:8px;"><a class="btn secondary" href="${escapeHtml(m[linkKey])}" target="_blank" rel="noopener">↗</a></div>` : "";
+      return `<div class="card">
+        <p class="week-tag">${t("week")} ${escapeHtml(m[weekKey])}${m[dateKey] ? " · " + escapeHtml(m[dateKey]) : ""}</p>
+        <p class="card-title">${escapeHtml(m[topicKey])}</p>
+        <p class="card-desc">${escapeHtml(m[descKey])}</p>
+        ${link}
+      </div>`;
+    })
+    .join("");
+}
+
+document.getElementById("btnEmi").addEventListener("click", () => { setCourse("emi"); applyCourseUI(); });
+document.getElementById("btnGrad").addEventListener("click", () => { setCourse("grad"); applyCourseUI(); });
+
+applyCourseUI();
+</script>
+</body>
+</html>

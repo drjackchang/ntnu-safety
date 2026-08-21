@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Student Showcase</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="brand" id="brandText">Safety Education</div>
+    <nav class="site-nav">
+      <a href="index.html" id="navHome">Home</a>
+      <a href="materials.html" id="navMaterials">Materials</a>
+      <a href="showcase.html" id="navShowcase">Showcase</a>
+      <a href="submit.html" id="navSubmit">Submit</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="course-toggle">
+    <button id="btnEmi">Safety Education (EMI)</button>
+    <button id="btnGrad">安全教育專題研究</button>
+  </div>
+
+  <h1 id="pageTitle">Student showcase</h1>
+
+  <div class="filters">
+    <select id="semesterFilter"></select>
+  </div>
+
+  <div class="grid" id="showcaseGrid"><p class="empty-state">Loading…</p></div>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+let allItems = [];
+
+function applyCourseUI() {
+  const course = getCourse();
+  document.getElementById("btnEmi").classList.toggle("active", course === "emi");
+  document.getElementById("btnGrad").classList.toggle("active", course === "grad");
+  const isEmi = course === "emi";
+  document.getElementById("brandText").textContent = isEmi ? "Safety Education" : "安全教育專題研究";
+  document.getElementById("navHome").textContent = isEmi ? "Home" : "首頁";
+  document.getElementById("navMaterials").textContent = t("materials");
+  document.getElementById("navShowcase").textContent = t("showcase");
+  document.getElementById("navSubmit").textContent = t("submit");
+  document.getElementById("pageTitle").textContent = t("showcase");
+  loadShowcase();
+}
+
+async function loadShowcase() {
+  const course = getCourse();
+  allItems = await fetchJSON({ action: "showcase", course });
+
+  const semesters = [...new Set(allItems.map((s) => s.Semester).filter(Boolean))].sort().reverse();
+  const sel = document.getElementById("semesterFilter");
+  sel.innerHTML = `<option value="">${t("filterAll")}</option>` + semesters.map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+
+  renderGrid(allItems);
+}
+
+function renderGrid(items) {
+  const grid = document.getElementById("showcaseGrid");
+  if (!items.length) {
+    grid.innerHTML = `<p class="empty-state">${t("noShowcase")}</p>`;
+    return;
+  }
+  grid.innerHTML = items
+    .map((s) => `<a class="showcase-card" href="project.html?id=${encodeURIComponent(s.ID)}">
+        <canvas width="400" height="200" data-title="${escapeHtml(s.Title)}" data-names="${escapeHtml(s.Names)}" data-semester="${escapeHtml(s.Semester)}" data-color="${escapeHtml(s.CoverColorHex)}"></canvas>
+        <div class="meta"><span>${escapeHtml(s.Semester || "")}</span><span>${escapeHtml(s.GroupNumber || "")}</span></div>
+      </a>`)
+    .join("");
+  grid.querySelectorAll("canvas").forEach((c) => {
+    generateCoverCanvas(c, { title: c.dataset.title, names: c.dataset.names, semester: c.dataset.semester, colorHex: c.dataset.color });
+  });
+}
+
+document.getElementById("semesterFilter").addEventListener("change", (e) => {
+  const val = e.target.value;
+  renderGrid(val ? allItems.filter((s) => s.Semester === val) : allItems);
+});
+
+document.getElementById("btnEmi").addEventListener("click", () => { setCourse("emi"); applyCourseUI(); });
+document.getElementById("btnGrad").addEventListener("click", () => { setCourse("grad"); applyCourseUI(); });
+
+applyCourseUI();
+</script>
+</body>
+</html>

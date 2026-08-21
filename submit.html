@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Submit</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="brand" id="brandText">Safety Education</div>
+    <nav class="site-nav">
+      <a href="index.html" id="navHome">Home</a>
+      <a href="materials.html" id="navMaterials">Materials</a>
+      <a href="showcase.html" id="navShowcase">Showcase</a>
+      <a href="submit.html" id="navSubmit">Submit</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="course-toggle">
+    <button id="btnEmi">Safety Education (EMI)</button>
+    <button id="btnGrad">安全教育專題研究</button>
+  </div>
+
+  <h1 id="pageTitle">Submit assignment</h1>
+  <p class="lead" id="pageLead"></p>
+
+  <form class="stack" id="submitForm">
+    <label id="lblGroup" style="display:none;">
+      <span id="lblGroupText">Group number</span>
+      <input type="text" name="groupNumber" placeholder="Group 3" />
+    </label>
+    <label>
+      <span id="lblNames">Names</span>
+      <input type="text" name="names" required />
+    </label>
+    <label>
+      <span id="lblAssignment">Assignment / week</span>
+      <input type="text" name="assignmentName" required />
+    </label>
+    <label>
+      <span id="lblLink">Submission link</span>
+      <input type="text" name="submissionLink" placeholder="https://" required />
+      <div class="field-error" id="errLink"></div>
+    </label>
+    <label>
+      <span id="lblNotes">Notes (optional)</span>
+      <textarea name="notes" rows="2"></textarea>
+    </label>
+    <div class="field-error" id="errRequired"></div>
+    <button class="btn" type="submit" id="btnSend">Submit</button>
+    <div class="form-status" id="formStatus"></div>
+  </form>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+function applyCourseUI() {
+  const course = getCourse();
+  document.getElementById("btnEmi").classList.toggle("active", course === "emi");
+  document.getElementById("btnGrad").classList.toggle("active", course === "grad");
+  const isEmi = course === "emi";
+
+  document.getElementById("brandText").textContent = isEmi ? "Safety Education" : "安全教育專題研究";
+  document.getElementById("navHome").textContent = isEmi ? "Home" : "首頁";
+  document.getElementById("navMaterials").textContent = t("materials");
+  document.getElementById("navShowcase").textContent = t("showcase");
+  document.getElementById("navSubmit").textContent = t("submit");
+  document.getElementById("pageTitle").textContent = t("submit");
+  document.getElementById("pageLead").textContent = isEmi
+    ? "Submit your group's assignment or project link."
+    : "提交您的作業或專案連結。";
+
+  // group field only shown for the EMI (group-based) course
+  document.getElementById("lblGroup").style.display = isEmi ? "flex" : "none";
+  document.getElementById("lblGroupText").textContent = t("groupNumber");
+  document.getElementById("lblNames").textContent = isEmi ? "Group member names" : t("names");
+  document.getElementById("lblAssignment").textContent = t("assignmentName");
+  document.getElementById("lblLink").textContent = t("submissionLink");
+  document.getElementById("lblNotes").textContent = t("notes");
+  document.getElementById("btnSend").textContent = t("send");
+}
+
+document.getElementById("submitForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const errRequired = document.getElementById("errRequired");
+  const errLink = document.getElementById("errLink");
+  const statusEl = document.getElementById("formStatus");
+  errRequired.textContent = "";
+  errLink.textContent = "";
+  statusEl.textContent = "";
+  statusEl.className = "form-status";
+
+  const names = form.names.value.trim();
+  const assignmentName = form.assignmentName.value.trim();
+  const submissionLink = form.submissionLink.value.trim();
+
+  if (!names || !assignmentName || !submissionLink) {
+    errRequired.textContent = t("requiredField");
+    return;
+  }
+  if (!isValidUrl(submissionLink)) {
+    errLink.textContent = t("invalidUrl");
+    return;
+  }
+
+  document.getElementById("btnSend").textContent = t("sending");
+  try {
+    const res = await postAction({
+      action: "submit",
+      course: getCourse(),
+      groupNumber: form.groupNumber ? form.groupNumber.value.trim() : "",
+      names,
+      assignmentName,
+      submissionLink,
+      notes: form.notes.value.trim(),
+    });
+    if (res.ok) {
+      statusEl.textContent = t("sentOk");
+      statusEl.classList.add("ok");
+      form.reset();
+    } else {
+      statusEl.textContent = t("sentErr");
+      statusEl.classList.add("error");
+    }
+  } catch (err) {
+    statusEl.textContent = t("sentErr");
+    statusEl.classList.add("error");
+  }
+  document.getElementById("btnSend").textContent = t("send");
+});
+
+document.getElementById("btnEmi").addEventListener("click", () => { setCourse("emi"); applyCourseUI(); });
+document.getElementById("btnGrad").addEventListener("click", () => { setCourse("grad"); applyCourseUI(); });
+
+applyCourseUI();
+</script>
+</body>
+</html>

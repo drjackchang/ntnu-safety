@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Safety Education Course Site</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="brand" id="brandText">Safety Education</div>
+    <nav class="site-nav">
+      <a href="index.html" id="navHome">Home</a>
+      <a href="materials.html" id="navMaterials">Materials</a>
+      <a href="showcase.html" id="navShowcase">Showcase</a>
+      <a href="submit.html" id="navSubmit">Submit</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="course-toggle">
+    <button id="btnEmi">Safety Education (EMI)</button>
+    <button id="btnGrad">安全教育專題研究</button>
+  </div>
+
+  <h1 id="pageTitle">Safety Education</h1>
+  <p class="lead" id="pageLead">Course materials, past student projects, and assignment links for this course.</p>
+
+  <h2 id="materialsHeading">Course materials</h2>
+  <div class="grid" id="materialsGrid"><p class="empty-state">Loading…</p></div>
+  <p style="margin-top:14px;"><a class="btn secondary" href="materials.html" id="linkAllMaterials">View all</a></p>
+
+  <h2 id="showcaseHeading">Student showcase</h2>
+  <div class="grid" id="showcaseGrid"><p class="empty-state">Loading…</p></div>
+  <p style="margin-top:14px;"><a class="btn secondary" href="showcase.html" id="linkAllShowcase">View all</a></p>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+function applyCourseUI() {
+  const course = getCourse();
+  document.getElementById("btnEmi").classList.toggle("active", course === "emi");
+  document.getElementById("btnGrad").classList.toggle("active", course === "grad");
+
+  const isEmi = course === "emi";
+  document.getElementById("brandText").textContent = isEmi ? "Safety Education" : "安全教育專題研究";
+  document.getElementById("pageTitle").textContent = isEmi ? "Safety Education" : "安全教育專題研究";
+  document.getElementById("pageLead").textContent = isEmi
+    ? "Course materials, past student projects, and assignment links for this course."
+    : "課程素材、歷年學生成果與作業連結。";
+  document.getElementById("navHome").textContent = isEmi ? "Home" : "首頁";
+  document.getElementById("navMaterials").textContent = t("materials");
+  document.getElementById("navShowcase").textContent = t("showcase");
+  document.getElementById("navSubmit").textContent = t("submit");
+  document.getElementById("materialsHeading").textContent = t("materials");
+  document.getElementById("showcaseHeading").textContent = t("showcase");
+  document.getElementById("linkAllMaterials").textContent = t("viewAll");
+  document.getElementById("linkAllShowcase").textContent = t("viewAll");
+
+  loadPreview();
+}
+
+async function loadPreview() {
+  const course = getCourse();
+
+  const materials = await fetchJSON({ action: "materials", course });
+  const mGrid = document.getElementById("materialsGrid");
+  if (!materials.length) {
+    mGrid.innerHTML = `<p class="empty-state">${t("noMaterials")}</p>`;
+  } else {
+    mGrid.innerHTML = materials
+      .slice(0, 4)
+      .map((m) => {
+        const weekKey = course === "emi" ? "Week" : "週次";
+        const topicKey = course === "emi" ? "Topic" : "主題";
+        const descKey = course === "emi" ? "Description" : "說明";
+        return `<div class="card">
+          <p class="week-tag">${t("week")} ${escapeHtml(m[weekKey])}</p>
+          <p class="card-title">${escapeHtml(m[topicKey])}</p>
+          <p class="card-desc">${escapeHtml(String(m[descKey] || "").slice(0, 90))}${String(m[descKey] || "").length > 90 ? "…" : ""}</p>
+        </div>`;
+      })
+      .join("");
+  }
+
+  const showcase = await fetchJSON({ action: "showcase", course });
+  const sGrid = document.getElementById("showcaseGrid");
+  if (!showcase.length) {
+    sGrid.innerHTML = `<p class="empty-state">${t("noShowcase")}</p>`;
+  } else {
+    sGrid.innerHTML = showcase
+      .slice(0, 4)
+      .map((s) => `<a class="showcase-card" href="project.html?id=${encodeURIComponent(s.ID)}">
+          <canvas width="400" height="200" data-title="${escapeHtml(s.Title)}" data-names="${escapeHtml(s.Names)}" data-semester="${escapeHtml(s.Semester)}" data-color="${escapeHtml(s.CoverColorHex)}"></canvas>
+          <div class="meta"><span>${escapeHtml(s.Semester || "")}</span><span>${escapeHtml(s.GroupNumber || "")}</span></div>
+        </a>`)
+      .join("");
+    sGrid.querySelectorAll("canvas").forEach((c) => {
+      generateCoverCanvas(c, { title: c.dataset.title, names: c.dataset.names, semester: c.dataset.semester, colorHex: c.dataset.color });
+    });
+  }
+}
+
+document.getElementById("btnEmi").addEventListener("click", () => { setCourse("emi"); applyCourseUI(); });
+document.getElementById("btnGrad").addEventListener("click", () => { setCourse("grad"); applyCourseUI(); });
+
+applyCourseUI();
+</script>
+</body>
+</html>

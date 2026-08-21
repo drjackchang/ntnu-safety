@@ -1,0 +1,148 @@
+:root {
+  --ink: #1a1a1a;
+  --ink-soft: #5f5f5f;
+  --ink-muted: #8a8a8a;
+  --line: #e2e2e2;
+  --surface: #ffffff;
+  --surface-alt: #f4f4f2;
+  --accent: #1f4e79;
+  --accent-soft: #e6f1fb;
+  --radius: 10px;
+  --max-width: 960px;
+  font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, "PingFang TC", "Microsoft JhengHei", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--surface-alt);
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+.wrap {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 20px 60px;
+}
+
+header.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 16px 0;
+  margin-bottom: 28px;
+}
+
+header.site-header .wrap {
+  padding-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.brand { font-weight: 600; font-size: 16px; }
+
+nav.site-nav a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-size: 14px;
+  margin-left: 18px;
+}
+nav.site-nav a:hover { color: var(--accent); }
+
+.course-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.course-toggle button {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: 14px;
+  cursor: pointer;
+}
+.course-toggle button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+
+h1 { font-size: 24px; font-weight: 600; margin: 0 0 6px; }
+h2 { font-size: 18px; font-weight: 600; margin: 32px 0 14px; }
+p.lead { color: var(--ink-soft); font-size: 15px; margin: 0 0 24px; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+}
+.card .week-tag { font-size: 12px; color: var(--ink-muted); margin: 0 0 6px; }
+.card .card-title { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
+.card .card-desc { font-size: 13px; color: var(--ink-soft); margin: 0; }
+
+.showcase-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.showcase-card canvas { display: block; width: 100%; height: auto; }
+.showcase-card .meta { padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--ink-muted); }
+
+.btn {
+  display: inline-block;
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+  cursor: pointer;
+}
+.btn.secondary {
+  background: var(--surface);
+  color: var(--accent);
+}
+
+form.stack { display: flex; flex-direction: column; gap: 12px; max-width: 480px; }
+form.stack label { font-size: 13px; color: var(--ink-soft); display: flex; flex-direction: column; gap: 4px; }
+form.stack input, form.stack select, form.stack textarea {
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+}
+.field-error { color: #b3261e; font-size: 12px; margin-top: -6px; }
+.form-status { font-size: 14px; margin-top: 8px; }
+.form-status.ok { color: #1a7a4c; }
+.form-status.error { color: #b3261e; }
+
+.comments-box { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 20px; }
+.comment-item { border-bottom: 1px solid var(--line); padding: 10px 0; font-size: 14px; }
+.comment-item .who { font-weight: 600; margin-right: 8px; }
+.comment-item .when { font-size: 12px; color: var(--ink-muted); }
+
+.filters { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+.filters select { padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); font-size: 13px; }
+
+.empty-state { color: var(--ink-muted); font-size: 14px; padding: 24px 0; }
