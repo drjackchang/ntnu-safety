@@ -75,12 +75,12 @@ header.site-header {
 .nav-glass {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 0 20px;
-  height: 54px;
+  padding: 0 28px;
+  height: 58px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
 }
 .brand { color: #fff; font-weight: 700; font-size: 16px; letter-spacing: 0; white-space: nowrap; }
 nav.site-nav { display: flex; gap: 2px; }
