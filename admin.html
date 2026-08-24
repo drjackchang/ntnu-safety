@@ -13,7 +13,7 @@
 
 <div class="wrap">
 
-  <div class="gate-box glass-panel" id="gateBox">
+  <div class="gate-box panel" id="gateBox">
     <h1 style="font-size:20px;">Admin access</h1>
     <p class="lead" style="margin-bottom:16px;">Enter the passphrase set in the Config tab of your Sheet (ADMIN_KEY).</p>
     <form class="stack" id="gateForm" style="max-width:none;">
@@ -26,15 +26,15 @@
   <div id="adminPanel" style="display:none;">
     <div id="segHost"></div>
     <div class="semester-select-wrap" style="gap:8px;">
-      <input class="glass-select" id="newSemesterInput" placeholder="e.g. 115-1" style="width:110px;" />
+      <input class="select-pill" id="newSemesterInput" placeholder="e.g. 115-1" style="width:110px;" />
       <button class="btn secondary" id="setActiveBtn" type="button">Set as active semester</button>
-      <select class="glass-select" id="semesterSelect"></select>
+      <select class="select-pill" id="semesterSelect"></select>
     </div>
 
     <h1>Roster &amp; groups</h1>
     <p class="lead">Edit names, emails, and group numbers below, then save. This replaces the full roster for the selected course + semester — nothing from other semesters is touched.</p>
 
-    <div class="glass-panel" style="padding:18px 20px; overflow-x:auto;">
+    <div class="panel" style="padding:18px 20px; overflow-x:auto;">
       <table class="roster" id="rosterTable">
         <thead><tr><th>Name</th><th>Email</th><th id="groupColHeader">Group</th><th></th></tr></thead>
         <tbody id="rosterBody"></tbody>

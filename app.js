@@ -19,7 +19,7 @@ const I18N = {
     filterAll: "All semesters", noMaterials: "No materials posted yet.", noShowcase: "No projects posted yet.",
     yourGroup: "Your group", progressWeek: "Week", progressText: "What did you accomplish this week?",
     progressLink: "Link (optional)", pastEntries: "Past entries", noProgress: "No progress entries yet.",
-    selectGroup: "Select your group", selectName: "Select your name", loading: "Loading…",
+    selectGroup: "Select your group", selectName: "Select your name", loading: "Loading…", viewAll: "View all",
   },
   grad: {
     materials: "上課素材", showcase: "歷年學生成果", submit: "提交作業", progress: "進度回報",
@@ -33,25 +33,90 @@ const I18N = {
     filterAll: "所有學期", noMaterials: "目前尚無上課素材。", noShowcase: "目前尚無作品成果。",
     yourGroup: "您的組別", progressWeek: "週次", progressText: "這週完成了什麼進度？",
     progressLink: "連結（選填）", pastEntries: "過往紀錄", noProgress: "目前尚無進度紀錄。",
-    selectGroup: "選擇您的組別", selectName: "選擇您的姓名", loading: "載入中…",
+    selectGroup: "選擇您的組別", selectName: "選擇您的姓名", loading: "載入中…", viewAll: "查看全部",
   },
 };
 function t(key) { const c = getCourse(); return (I18N[c] && I18N[c][key]) || I18N.emi[key] || key; }
 
 // ---------- API helpers ----------
+function gasConfigured() {
+  return typeof GAS_URL === "string" && GAS_URL.length > 0 && !GAS_URL.includes("REPLACE_WITH");
+}
+
+// Shows one dismissible error banner at the top of .wrap. Repeated calls replace
+// the previous message rather than stacking duplicates, so it's safe to call from
+// every failed fetch without spamming the page.
+function showConnectionError(message) {
+  let banner = document.getElementById("connectionErrorBanner");
+  const wrap = document.querySelector(".wrap");
+  if (!wrap) return;
+  if (!banner) {
+    banner = document.createElement("div");
+    banner.id = "connectionErrorBanner";
+    banner.className = "panel";
+    banner.style.cssText = "padding:14px 18px;margin-bottom:20px;border-radius:10px;border:1px solid #fecaca;background:#fef2f2;color:#991b1b;font-size:13px;font-weight:500;";
+    wrap.prepend(banner);
+  }
+  banner.textContent = "⚠ " + message;
+}
+function clearConnectionError() {
+  const banner = document.getElementById("connectionErrorBanner");
+  if (banner) banner.remove();
+}
+
 async function fetchJSON(params) {
+  if (!gasConfigured()) {
+    showConnectionError("config.js still has the placeholder GAS_URL — open it and paste in your deployed Apps Script Web App URL.");
+    throw new Error("GAS_URL is not set yet");
+  }
   const url = new URL(GAS_URL);
   Object.keys(params).forEach((k) => url.searchParams.set(k, params[k]));
-  const res = await fetch(url.toString());
-  return res.json();
+  let res;
+  try {
+    res = await fetch(url.toString());
+  } catch (err) {
+    showConnectionError("Can't reach the Apps Script backend. Check your internet connection and that GAS_URL in config.js is correct.");
+    throw err;
+  }
+  if (!res.ok) {
+    showConnectionError(`Backend returned an error (HTTP ${res.status}). Check that the Apps Script is deployed with access set to "Anyone".`);
+    throw new Error("Bad response: " + res.status);
+  }
+  let data;
+  try {
+    data = await res.json();
+  } catch (err) {
+    showConnectionError("Backend did not return valid data. Check that the Apps Script Web App URL in config.js is correct and freshly deployed.");
+    throw err;
+  }
+  if (data && data.error) {
+    showConnectionError("Backend error: " + data.error);
+  } else {
+    clearConnectionError();
+  }
+  return data;
 }
+
 async function postAction(payload) {
-  const res = await fetch(GAS_URL, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(payload),
-  });
-  return res.json();
+  if (!gasConfigured()) {
+    showConnectionError("config.js still has the placeholder GAS_URL — open it and paste in your deployed Apps Script Web App URL.");
+    return { ok: false, error: "GAS_URL is not set yet" };
+  }
+  try {
+    const res = await fetch(GAS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      showConnectionError(`Backend returned an error (HTTP ${res.status}).`);
+      return { ok: false, error: "HTTP " + res.status };
+    }
+    return await res.json();
+  } catch (err) {
+    showConnectionError("Can't reach the Apps Script backend. Check your internet connection and that GAS_URL in config.js is correct.");
+    return { ok: false, error: String(err) };
+  }
 }
 
 // ---------- Semester bootstrapping ----------
@@ -99,7 +164,7 @@ function renderNav(activePage) {
   const desktopHost = document.getElementById("navHost");
   if (desktopHost) {
     desktopHost.innerHTML = `
-      <div class="nav-glass">
+      <div class="nav-bar">
         <div class="brand">${brand}</div>
         <nav class="site-nav">
           ${items.map(([href, key, label]) => `<a href="${href}" class="${key === activePage ? "active" : ""}">${label}</a>`).join("")}
@@ -228,7 +293,7 @@ async function loadComments(container, topic, pollMs) {
 }
 function renderCommentsBox(container, topic) {
   container.innerHTML = `
-    <div class="comments-box glass-panel" style="padding:20px 22px;">
+    <div class="comments-box panel" style="padding:20px 22px;">
       <h2 style="margin-top:0;">${t("comments")}</h2>
       <div class="comment-list"></div>
       <form class="comment-form stack" style="margin-top:14px;">
