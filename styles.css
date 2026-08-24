@@ -39,6 +39,19 @@ html { scroll-behavior: smooth; }
 button, input, select, textarea { font-family: inherit; -webkit-appearance: none; appearance: none; }
 button { border: none; background: none; cursor: pointer; }
 
+/* intentional focus styling — only shows for keyboard navigation, not mouse clicks,
+   so it never appears as a stray box after a normal tap/click */
+a, button, input, select, textarea { outline: none; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+nav.site-nav a:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: -2px;
+}
+
 body {
   margin: 0;
   color: var(--ink);
@@ -84,9 +97,11 @@ nav.site-nav a {
 nav.site-nav a:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
 nav.site-nav a.active { background: rgba(255, 255, 255, 0.22); color: #fff; }
 
-/* ---------- mobile bottom bar (solid utility bar, not floating) ---------- */
+/* ---------- mobile: slim brand bar stays, nav links move to bottom bar ---------- */
 @media (max-width: 860px) {
-  header.site-header { display: none; }
+  header.site-header { margin-bottom: 20px; }
+  .nav-glass { height: 46px; }
+  .nav-glass nav.site-nav { display: none; }
   .mobile-tabbar {
     display: flex;
     position: fixed;
@@ -117,6 +132,33 @@ nav.site-nav a.active { background: rgba(255, 255, 255, 0.22); color: #fff; }
 }
 @media (min-width: 861px) {
   .mobile-tabbar { display: none; }
+}
+
+/* ---------- tablet tier: tighten spacing a notch ---------- */
+@media (max-width: 700px) {
+  .wrap { padding: 0 18px; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 16px; margin: 28px 0 12px; }
+  .grid { gap: 12px; }
+  .card { padding: 14px 16px; }
+}
+
+/* ---------- small phone tier: single-column comfort, full-width tap targets ---------- */
+@media (max-width: 420px) {
+  .wrap { padding: 0 14px; }
+  h1 { font-size: 20px; }
+  p.lead { font-size: 13px; }
+  .segmented button {
+    font-size: 12.5px;
+    padding: 10px 6px;
+    white-space: normal;
+    line-height: 1.25;
+  }
+  .semester-select-wrap { justify-content: flex-start; }
+  select.glass-select { width: 100%; }
+  form.stack { max-width: 100%; }
+  .btn { width: 100%; justify-content: center; }
+  table.roster { font-size: 12px; }
 }
 
 /* ---------- course switcher: underline tab style, not a pill ---------- */
