@@ -72,7 +72,7 @@ header.site-header {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
   margin-bottom: 28px;
 }
-.nav-glass {
+.nav-bar {
   max-width: 1000px;
   margin: 0 auto;
   padding: 0 28px;
@@ -100,8 +100,8 @@ nav.site-nav a.active { background: rgba(255, 255, 255, 0.22); color: #fff; }
 /* ---------- mobile: slim brand bar stays, nav links move to bottom bar ---------- */
 @media (max-width: 860px) {
   header.site-header { margin-bottom: 20px; }
-  .nav-glass { height: 46px; }
-  .nav-glass nav.site-nav { display: none; }
+  .nav-bar { height: 46px; }
+  .nav-bar nav.site-nav { display: none; }
   .mobile-tabbar {
     display: flex;
     position: fixed;
