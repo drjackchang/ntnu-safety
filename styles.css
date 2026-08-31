@@ -155,7 +155,7 @@ nav.site-nav a.active { background: rgba(255, 255, 255, 0.22); color: #fff; }
     line-height: 1.25;
   }
   .semester-select-wrap { justify-content: flex-start; }
-  select.glass-select { width: 100%; }
+  select.select-pill { width: 100%; }
   form.stack { max-width: 100%; }
   .btn { width: 100%; justify-content: center; }
   table.roster { font-size: 12px; }
@@ -197,7 +197,7 @@ nav.site-nav a.active { background: rgba(255, 255, 255, 0.22); color: #fff; }
 }
 
 .semester-select-wrap { display: flex; justify-content: flex-end; margin-bottom: 4px; }
-select.glass-select {
+select.select-pill {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -214,7 +214,7 @@ h2 { font-size: 17px; font-weight: 700; letter-spacing: 0; margin: 34px 0 14px; 
 p.lead { color: var(--ink-soft); font-size: 14px; margin: 0 0 22px; }
 
 /* ---------- flat institutional cards ---------- */
-.glass-panel, .card {
+.panel, .card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);

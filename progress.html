@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Progress</title>
-<link rel="stylesheet" href="styles.css?v=5" />
+<link rel="stylesheet" href="styles.css?v=6" />
 </head>
 <body>
 
@@ -18,11 +18,35 @@
   <h1 id="pageTitle">Progress</h1>
   <p class="lead" id="pageLead"></p>
 
-  <form class="stack panel" style="padding:22px 24px;" id="progressForm">
-    <label>
+  <div class="panel" style="padding:18px 20px; margin-bottom:8px;">
+    <label style="font-size:13px; font-weight:600; color:var(--ink-soft); display:flex; flex-direction:column; gap:6px; max-width:320px;">
       <span id="lblWho">Group</span>
       <select name="who" id="whoSelect"></select>
     </label>
+  </div>
+
+  <!-- Attendance -->
+  <h2 id="attendanceHeading">Attendance</h2>
+  <div class="panel" style="padding:18px 20px;">
+    <p style="font-size:13px; color:var(--ink-muted); margin:0 0 12px;" id="attendanceCountText"></p>
+    <form class="stack" id="attendanceForm" style="max-width:320px; gap:10px;">
+      <label>
+        <span id="lblAtWeek">Week</span>
+        <select name="week" id="atWeekSelect"></select>
+      </label>
+      <label>
+        <span id="lblAtCode">Today's code</span>
+        <input name="code" id="atCodeInput" type="text" autocomplete="off" />
+      </label>
+      <div class="field-error" id="atError"></div>
+      <button class="btn" type="submit" id="atBtn">Check in</button>
+      <div class="form-status" id="atStatus"></div>
+    </form>
+  </div>
+
+  <!-- Progress -->
+  <h2 id="progressHeading">Progress</h2>
+  <form class="stack panel" style="padding:22px 24px;" id="progressForm">
     <label>
       <span id="lblWeek">Week</span>
       <select name="week" id="weekSelect"></select>
@@ -43,17 +67,24 @@
 
   <h2 id="pastHeading">Past entries</h2>
   <div class="progress-log" id="progressLog"><p class="empty-state" id="loadingText"></p></div>
+
+  <!-- Submissions summary -->
+  <h2 id="submissionsHeading">Your submissions</h2>
+  <div class="grid" id="submissionsList"><p class="empty-state" id="submissionsLoadingText"></p></div>
 </div>
 
-<script src="config.js?v=5"></script>
-<script src="app.js?v=5"></script>
+<script src="config.js?v=6"></script>
+<script src="app.js?v=6"></script>
 <script>
 async function init() {
   document.body.setAttribute("data-course", getCourse());
   renderNav("progress");
-  renderCourseSegmented(document.getElementById("segHost"), () => { document.body.setAttribute("data-course", getCourse()); renderNav("progress"); applyText(); loadWho(); populateWeeks(); });
+  renderCourseSegmented(document.getElementById("segHost"), () => {
+    document.body.setAttribute("data-course", getCourse());
+    renderNav("progress"); applyText(); populateWeeks(); loadWho();
+  });
   await populateSemesterSelect(document.getElementById("semesterSelect"));
-  document.getElementById("semesterSelect").addEventListener("change", () => { loadWho(); });
+  document.getElementById("semesterSelect").addEventListener("change", () => loadWho());
   applyText();
   populateWeeks();
   await loadWho();
@@ -62,19 +93,30 @@ async function init() {
 function applyText() {
   const isEmi = getCourse() === "emi";
   document.getElementById("pageTitle").textContent = t("progress");
-  document.getElementById("pageLead").textContent = isEmi ? "Log your group's weekly progress on the term project." : "記錄您每週的學習或專案進度。";
+  document.getElementById("pageLead").textContent = isEmi
+    ? "Check in for class, log your group's weekly progress, and see your submission history — all in one place."
+    : "簽到、記錄每週進度，並查看您的繳交紀錄——都在這一頁。";
   document.getElementById("lblWho").textContent = isEmi ? t("selectGroup") : t("selectName");
+  document.getElementById("attendanceHeading").textContent = t("attendance");
+  document.getElementById("lblAtWeek").textContent = t("week");
+  document.getElementById("lblAtCode").textContent = t("attendanceCode");
+  document.getElementById("atBtn").textContent = t("checkIn");
+  document.getElementById("progressHeading").textContent = t("progress");
   document.getElementById("lblWeek").textContent = t("progressWeek");
   document.getElementById("lblText").textContent = t("progressText");
   document.getElementById("lblLink").textContent = t("progressLink");
   document.getElementById("btnSend").textContent = t("send");
   document.getElementById("pastHeading").textContent = t("pastEntries");
   document.getElementById("loadingText").textContent = t("loading");
+  document.getElementById("submissionsHeading").textContent = t("yourSubmissions");
+  document.getElementById("submissionsLoadingText").textContent = t("loading");
 }
 
 function populateWeeks() {
-  const sel = document.getElementById("weekSelect");
-  sel.innerHTML = Array.from({ length: 16 }, (_, i) => i + 1).map((w) => `<option value="${w}">${t("week")} ${w}</option>`).join("");
+  const weeks = Array.from({ length: 16 }, (_, i) => i + 1);
+  const opts = weeks.map((w) => `<option value="${w}">${t("week")} ${w}</option>`).join("");
+  document.getElementById("weekSelect").innerHTML = opts;
+  document.getElementById("atWeekSelect").innerHTML = opts;
 }
 
 async function loadWho() {
@@ -90,10 +132,52 @@ async function loadWho() {
     const names = [...new Set(students.map((s) => s.Name).filter(Boolean))].sort();
     sel.innerHTML = names.length ? names.map((n) => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("") : `<option value="">${t("selectName")} — roster not set up yet</option>`;
   }
-  sel.onchange = loadLog;
-  await loadLog();
+  sel.onchange = () => { loadAttendanceCount(); loadLog(); loadSubmissions(); };
+  await Promise.all([loadAttendanceCount(), loadLog(), loadSubmissions()]);
 }
 
+// ---------- Attendance ----------
+async function loadAttendanceCount() {
+  const course = getCourse();
+  const semester = getSemester();
+  const who = document.getElementById("whoSelect").value;
+  const countEl = document.getElementById("attendanceCountText");
+  if (!who) { countEl.textContent = ""; return; }
+  const rows = await fetchJSON({ action: "attendance", course, semester, name: who });
+  countEl.textContent = `${rows.length} ${t("attendanceCount")}`;
+}
+
+document.getElementById("attendanceForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const errEl = document.getElementById("atError");
+  const statusEl = document.getElementById("atStatus");
+  errEl.textContent = ""; statusEl.textContent = ""; statusEl.className = "form-status";
+
+  const who = document.getElementById("whoSelect").value;
+  const code = form.code.value.trim();
+  if (!who) { errEl.textContent = t("requiredField"); return; }
+  if (!code) { errEl.textContent = t("requiredField"); return; }
+
+  document.getElementById("atBtn").textContent = "…";
+  const res = await postAction({
+    action: "attendance",
+    course: getCourse(), semester: getSemester(),
+    week: form.week.value, name: who, code,
+  });
+  if (res.ok) {
+    statusEl.textContent = t("checkedIn");
+    statusEl.classList.add("ok");
+    form.code.value = "";
+    await loadAttendanceCount();
+  } else {
+    statusEl.textContent = res.error || t("sentErr");
+    statusEl.classList.add("error");
+  }
+  document.getElementById("atBtn").textContent = t("checkIn");
+});
+
+// ---------- Progress ----------
 async function loadLog() {
   const course = getCourse();
   const semester = getSemester();
@@ -123,7 +207,7 @@ document.getElementById("progressForm").addEventListener("submit", async (e) => 
   const statusEl = document.getElementById("formStatus");
   errRequired.textContent = ""; errLink.textContent = ""; statusEl.textContent = ""; statusEl.className = "form-status";
 
-  const who = form.who.value.trim();
+  const who = document.getElementById("whoSelect").value;
   const progressText = form.progressText.value.trim();
   const link = form.link.value.trim();
 
@@ -144,6 +228,24 @@ document.getElementById("progressForm").addEventListener("submit", async (e) => 
   }
   document.getElementById("btnSend").textContent = t("send");
 });
+
+// ---------- Submissions summary ----------
+async function loadSubmissions() {
+  const course = getCourse();
+  const semester = getSemester();
+  const subject = document.getElementById("whoSelect").value;
+  const list = document.getElementById("submissionsList");
+  if (!subject) { list.innerHTML = `<p class="empty-state">${t("noSubmissions")}</p>`; return; }
+
+  const rows = await fetchJSON({ action: "submissions", course, semester, subject });
+  if (!rows.length) { list.innerHTML = `<p class="empty-state">${t("noSubmissions")}</p>`; return; }
+
+  list.innerHTML = rows.map((r) => `<div class="card">
+      <p class="card-title">${escapeHtml(r.AssignmentName)}</p>
+      <p class="card-desc">${formatTime(r.Timestamp)}</p>
+      <div style="margin-top:8px;"><a class="btn secondary" href="${escapeHtml(r.SubmissionLink)}" target="_blank" rel="noopener">↗</a></div>
+    </div>`).join("");
+}
 
 init();
 </script>

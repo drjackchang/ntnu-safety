@@ -20,6 +20,11 @@ const I18N = {
     yourGroup: "Your group", progressWeek: "Week", progressText: "What did you accomplish this week?",
     progressLink: "Link (optional)", pastEntries: "Past entries", noProgress: "No progress entries yet.",
     selectGroup: "Select your group", selectName: "Select your name", loading: "Loading…", viewAll: "View all",
+    attendance: "Attendance", attendanceCode: "Today's code", checkIn: "Check in", checkedIn: "Checked in!",
+    attendanceCount: "sessions attended this semester", wrongCode: "That code doesn't match — check with your instructor.",
+    noCodeSet: "No code set for this week yet — ask your instructor.",
+    yourSubmissions: "Your submissions", noSubmissions: "No submissions yet.",
+    announcements: "Announcements", noAnnouncements: "",
   },
   grad: {
     materials: "上課素材", showcase: "歷年學生成果", submit: "提交作業", progress: "進度回報",
@@ -34,6 +39,11 @@ const I18N = {
     yourGroup: "您的組別", progressWeek: "週次", progressText: "這週完成了什麼進度？",
     progressLink: "連結（選填）", pastEntries: "過往紀錄", noProgress: "目前尚無進度紀錄。",
     selectGroup: "選擇您的組別", selectName: "選擇您的姓名", loading: "載入中…", viewAll: "查看全部",
+    attendance: "簽到", attendanceCode: "今日簽到碼", checkIn: "簽到", checkedIn: "簽到成功！",
+    attendanceCount: "本學期已簽到次數", wrongCode: "簽到碼不正確，請跟老師確認。",
+    noCodeSet: "這週還沒有設定簽到碼，請跟老師確認。",
+    yourSubmissions: "我的繳交紀錄", noSubmissions: "目前尚無繳交紀錄。",
+    announcements: "課程公告", noAnnouncements: "",
   },
 };
 function t(key) { const c = getCourse(); return (I18N[c] && I18N[c][key]) || I18N.emi[key] || key; }
@@ -304,6 +314,28 @@ function renderCommentsBox(container, topic) {
       </form>
     </div>`;
   loadComments(container, topic, 8000);
+}
+
+// ---------- Announcements banner (used on index.html) ----------
+async function renderAnnouncements(container) {
+  const course = getCourse();
+  const semester = getSemester();
+  let items;
+  try {
+    items = await fetchJSON({ action: "announcements", course, semester });
+  } catch (err) {
+    return; // connection error banner already shown by fetchJSON
+  }
+  if (!items || !items.length) { container.innerHTML = ""; return; }
+  container.innerHTML = `
+    <div class="panel" style="padding:16px 20px; margin-bottom:22px; border-left:3px solid var(--accent);">
+      <h2 style="margin:0 0 10px; border:none; padding:0;">${t("announcements")}</h2>
+      ${items.map((a) => `
+        <div style="padding:8px 0; border-top:1px solid var(--border);">
+          <div style="font-size:12px; color:var(--ink-muted); margin-bottom:2px;">${formatTime(a.Timestamp)}</div>
+          <div style="font-size:14px;">${escapeHtml(a.Message)}</div>
+        </div>`).join("")}
+    </div>`;
 }
 
 // ---------- Small utils ----------

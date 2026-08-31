@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard</title>
+<link rel="stylesheet" href="styles.css?v=6" />
+</head>
+<body>
+
+<header class="site-header"><div id="navHost"></div></header>
+<div id="mobileNavHost"></div>
+
+<div class="wrap">
+
+  <div class="gate-box panel" id="gateBox">
+    <h1 style="font-size:20px;">Admin access</h1>
+    <p class="lead" style="margin-bottom:16px;">Enter the passphrase set in the Config tab of your Sheet (ADMIN_KEY).</p>
+    <form class="stack" id="gateForm" style="max-width:none;">
+      <input type="password" id="adminKeyInput" placeholder="Passphrase" />
+      <div class="field-error" id="gateError"></div>
+      <button class="btn" type="submit">Unlock</button>
+    </form>
+  </div>
+
+  <div id="dashPanel" style="display:none;">
+    <div id="segHost"></div>
+    <div class="semester-select-wrap" style="gap:8px;">
+      <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--ink-soft);">
+        Week
+        <select class="select-pill" id="weekSelect"></select>
+      </label>
+      <select class="select-pill" id="semesterSelect"></select>
+    </div>
+
+    <h1>Dashboard</h1>
+    <p class="lead">Read-only overview — edit the roster or codes in <a href="admin.html">admin.html</a>.</p>
+
+    <h2>Attendance — selected week</h2>
+    <div class="panel" style="padding:18px 20px;">
+      <p id="attendanceSummary" style="font-size:14px; margin:0 0 12px;"></p>
+      <p style="font-size:13px; color:var(--ink-muted); margin:0 0 6px;">Not checked in yet:</p>
+      <div id="attendanceMissing"></div>
+    </div>
+
+    <h2>Missing submissions (any assignment, all semester)</h2>
+    <div class="panel" style="padding:18px 20px;">
+      <div id="submissionsMissing"></div>
+    </div>
+
+    <h2>Missing progress report — selected week</h2>
+    <div class="panel" style="padding:18px 20px;">
+      <div id="progressMissing"></div>
+    </div>
+  </div>
+</div>
+
+<script src="config.js?v=6"></script>
+<script src="app.js?v=6"></script>
+<script>
+let adminKey = sessionStorage.getItem("adminKey") || "";
+
+document.getElementById("gateForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const key = document.getElementById("adminKeyInput").value.trim();
+  const errEl = document.getElementById("gateError");
+  errEl.textContent = "";
+  const cfg = await fetchJSON({ action: "config" });
+  const expected = cfg.ADMIN_KEY ? String(cfg.ADMIN_KEY).trim() : "";
+  if (key && expected && key === expected) {
+    adminKey = key;
+    sessionStorage.setItem("adminKey", key);
+    document.getElementById("gateBox").style.display = "none";
+    document.getElementById("dashPanel").style.display = "block";
+    initPanel();
+  } else {
+    errEl.textContent = "Doesn't match ADMIN_KEY in the Config tab. (Unlock admin.html first if you're not sure of the passphrase — it shows the same check.)";
+  }
+});
+
+if (adminKey) {
+  document.getElementById("gateBox").style.display = "none";
+  document.getElementById("dashPanel").style.display = "block";
+  initPanel();
+}
+
+async function initPanel() {
+  document.body.setAttribute("data-course", getCourse());
+  renderNav("");
+  renderCourseSegmented(document.getElementById("segHost"), () => { document.body.setAttribute("data-course", getCourse()); loadAll(); });
+  document.getElementById("weekSelect").innerHTML = Array.from({ length: 16 }, (_, i) => i + 1).map((w) => `<option value="${w}">Week ${w}</option>`).join("");
+  await populateSemesterSelect(document.getElementById("semesterSelect"));
+  document.getElementById("semesterSelect").addEventListener("change", (e) => { setSemester(e.target.value); loadAll(); });
+  document.getElementById("weekSelect").addEventListener("change", loadAll);
+  await loadAll();
+}
+
+function subjectLabel(course) {
+  return course === "emi" ? "Group" : "Name";
+}
+
+async function loadAll() {
+  const course = getCourse();
+  const semester = getSemester();
+  const week = document.getElementById("weekSelect").value;
+
+  const students = await fetchJSON({ action: "students", course, semester });
+
+  // ---- Attendance (per individual) ----
+  const attendance = await fetchJSON({ action: "attendance", course, semester, week });
+  const checkedIn = new Set(attendance.map((a) => a.Name));
+  const allNames = students.map((s) => s.Name).filter(Boolean);
+  const missingAttendance = allNames.filter((n) => !checkedIn.has(n));
+  document.getElementById("attendanceSummary").textContent = `${checkedIn.size} / ${allNames.length} checked in for week ${week}`;
+  document.getElementById("attendanceMissing").innerHTML = missingAttendance.length
+    ? missingAttendance.map((n) => `<span class="btn secondary" style="margin:3px 4px 0 0; cursor:default;">${escapeHtml(n)}</span>`).join("")
+    : `<p class="empty-state" style="padding:6px 0;">Everyone has checked in.</p>`;
+
+  // ---- Subjects: groups for EMI, individual names for grad ----
+  const subjects = course === "emi"
+    ? [...new Set(students.map((s) => s.GroupNumber).filter(Boolean))].sort()
+    : [...new Set(students.map((s) => s.Name).filter(Boolean))].sort();
+
+  // ---- Missing submissions (ever, this semester) ----
+  const submissions = await fetchJSON({ action: "submissions", course, semester });
+  const submittedSubjects = new Set(submissions.map((s) => course === "emi" ? s.GroupNumber : s.Names));
+  const missingSubmissions = subjects.filter((s) => !submittedSubjects.has(s));
+  renderChipList("submissionsMissing", missingSubmissions, `Every ${subjectLabel(course).toLowerCase()} has submitted at least once.`);
+
+  // ---- Missing progress for selected week ----
+  const progress = await fetchJSON({ action: "progress", course, semester });
+  const reportedThisWeek = new Set(progress.filter((p) => String(p.Week) === String(week)).map((p) => p.GroupOrName));
+  const missingProgress = subjects.filter((s) => !reportedThisWeek.has(s));
+  renderChipList("progressMissing", missingProgress, `Everyone reported progress for week ${week}.`);
+}
+
+function renderChipList(hostId, items, emptyMessage) {
+  const host = document.getElementById(hostId);
+  host.innerHTML = items.length
+    ? items.map((s) => `<span class="btn secondary" style="margin:3px 4px 0 0; cursor:default;">${escapeHtml(s)}</span>`).join("")
+    : `<p class="empty-state" style="padding:6px 0;">${emptyMessage}</p>`;
+}
+</script>
+</body>
+</html>

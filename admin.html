@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Admin</title>
-<link rel="stylesheet" href="styles.css?v=5" />
+<link rel="stylesheet" href="styles.css?v=6" />
 </head>
 <body>
 
@@ -45,11 +45,36 @@
       <button class="btn" id="saveRosterBtn" type="button">Save roster</button>
       <span class="form-status" id="rosterStatus"></span>
     </div>
+
+    <h2>Attendance code</h2>
+    <p class="lead">Set a code for a given week — students enter this on the Progress page to check in. Change it each session if you want to prevent students from checking in remotely after the fact.</p>
+    <div class="panel" style="padding:18px 20px;">
+      <form class="stack" id="codeForm" style="max-width:280px; gap:10px;">
+        <label>Week<select name="week" id="codeWeekSelect"></select></label>
+        <label>Code<input name="code" id="codeInput" type="text" placeholder="e.g. a 4-digit number" /></label>
+        <button class="btn" type="submit">Set code</button>
+        <div class="form-status" id="codeStatus"></div>
+      </form>
+    </div>
+
+    <h2>Announcements</h2>
+    <p class="lead">Posted announcements show at the top of the homepage for the selected course, most recent first.</p>
+    <div class="panel" style="padding:18px 20px;">
+      <form class="stack" id="announceForm" style="max-width:480px; gap:10px;">
+        <label>Message<textarea name="message" rows="3" required></textarea></label>
+        <button class="btn" type="submit">Post announcement</button>
+        <div class="form-status" id="announceStatus"></div>
+      </form>
+    </div>
+
+    <h2>Dashboard</h2>
+    <p class="lead">A read-only overview of attendance and who's missing assignments/progress this semester.</p>
+    <p><a class="btn secondary" href="dashboard.html">Open dashboard →</a></p>
   </div>
 </div>
 
-<script src="config.js?v=5"></script>
-<script src="app.js?v=5"></script>
+<script src="config.js?v=6"></script>
+<script src="app.js?v=6"></script>
 <script>
 let adminKey = sessionStorage.getItem("adminKey") || "";
 
@@ -94,6 +119,9 @@ async function initPanel() {
   document.getElementById("addRowBtn").addEventListener("click", () => addRow({ Name: "", Email: "", GroupNumber: "" }));
   document.getElementById("saveRosterBtn").addEventListener("click", saveRoster);
   document.getElementById("setActiveBtn").addEventListener("click", setActiveSemester);
+  document.getElementById("codeWeekSelect").innerHTML = Array.from({ length: 16 }, (_, i) => i + 1).map((w) => `<option value="${w}">Week ${w}</option>`).join("");
+  document.getElementById("codeForm").addEventListener("submit", setAttendanceCode);
+  document.getElementById("announceForm").addEventListener("submit", postAnnouncement);
   await loadRoster();
 }
 
@@ -143,6 +171,35 @@ async function setActiveSemester() {
   setSemester(val);
   document.getElementById("semesterSelect").value = val;
   loadRoster();
+}
+
+async function setAttendanceCode(e) {
+  e.preventDefault();
+  const form = e.target;
+  const statusEl = document.getElementById("codeStatus");
+  statusEl.textContent = "Saving…"; statusEl.className = "form-status";
+  const res = await postAction({
+    action: "admin_set_attendance_code", adminKey,
+    course: getCourse(), semester: getSemester(),
+    week: form.week.value, code: form.code.value.trim(),
+  });
+  if (res.ok) { statusEl.textContent = "Code set."; statusEl.classList.add("ok"); }
+  else { statusEl.textContent = "Failed: " + (res.error || "unknown error"); statusEl.classList.add("error"); }
+}
+
+async function postAnnouncement(e) {
+  e.preventDefault();
+  const form = e.target;
+  const statusEl = document.getElementById("announceStatus");
+  const message = form.message.value.trim();
+  if (!message) return;
+  statusEl.textContent = "Posting…"; statusEl.className = "form-status";
+  const res = await postAction({
+    action: "admin_post_announcement", adminKey,
+    course: getCourse(), semester: getSemester(), message,
+  });
+  if (res.ok) { statusEl.textContent = "Posted."; statusEl.classList.add("ok"); form.reset(); }
+  else { statusEl.textContent = "Failed: " + (res.error || "unknown error"); statusEl.classList.add("error"); }
 }
 </script>
 </body>
