@@ -368,6 +368,16 @@ async function renderAnnouncements(container) {
 }
 
 // ---------- Small utils ----------
+// Safe textContent setter — some "Loading…" placeholder elements live inside a
+// container that gets replaced by innerHTML once real data loads, so the element
+// won't exist anymore on a later re-render (e.g. after switching course). Using
+// this instead of a raw getElementById().textContent avoids a crash there, which
+// would otherwise silently stop the rest of that reload function from running.
+function setText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }

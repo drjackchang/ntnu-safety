@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Progress</title>
-<link rel="stylesheet" href="styles.css?v=9" />
+<link rel="stylesheet" href="styles.css?v=10" />
 </head>
 <body>
 
@@ -73,8 +73,8 @@
   <div class="grid" id="submissionsList"><p class="empty-state" id="submissionsLoadingText"></p></div>
 </div>
 
-<script src="config.js?v=9"></script>
-<script src="app.js?v=9"></script>
+<script src="config.js?v=10"></script>
+<script src="app.js?v=10"></script>
 <script>
 async function init() {
   document.body.setAttribute("data-course", getCourse());
@@ -107,9 +107,9 @@ function applyText() {
   document.getElementById("lblLink").textContent = t("progressLink");
   document.getElementById("btnSend").textContent = t("send");
   document.getElementById("pastHeading").textContent = t("pastEntries");
-  document.getElementById("loadingText").textContent = t("loading");
+  setText("loadingText", t("loading"));
   document.getElementById("submissionsHeading").textContent = t("yourSubmissions");
-  document.getElementById("submissionsLoadingText").textContent = t("loading");
+  setText("submissionsLoadingText", t("loading"));
 }
 
 function populateWeeks() {
