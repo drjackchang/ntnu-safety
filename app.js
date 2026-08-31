@@ -48,6 +48,17 @@ const I18N = {
 };
 function t(key) { const c = getCourse(); return (I18N[c] && I18N[c][key]) || I18N.emi[key] || key; }
 
+// ---------- Race-condition guard ----------
+// When the user switches course/semester quickly, an older still-in-flight fetch
+// can resolve AFTER a newer one and overwrite the screen with stale data. Call
+// latestWins(key) right before starting a fetch; it returns a check function —
+// only act on the result if that check still returns true once the fetch resolves.
+function latestWins(key) {
+  window.__latestWinsTokens = window.__latestWinsTokens || {};
+  const token = (window.__latestWinsTokens[key] = (window.__latestWinsTokens[key] || 0) + 1);
+  return () => window.__latestWinsTokens[key] === token;
+}
+
 // ---------- API helpers ----------
 function gasConfigured() {
   return typeof GAS_URL === "string" && GAS_URL.length > 0 && !GAS_URL.includes("REPLACE_WITH");
@@ -318,6 +329,7 @@ function renderCommentsBox(container, topic) {
 
 // ---------- Announcements banner (used on index.html) ----------
 async function renderAnnouncements(container) {
+  const isCurrent = latestWins("announcements");
   const course = getCourse();
   const semester = getSemester();
   let items;
@@ -326,6 +338,7 @@ async function renderAnnouncements(container) {
   } catch (err) {
     return; // connection error banner already shown by fetchJSON
   }
+  if (!isCurrent()) return; // a newer switch happened while this was in flight — discard
   if (!items || !items.length) { container.innerHTML = ""; return; }
   container.innerHTML = `
     <div class="panel" style="padding:16px 20px; margin-bottom:22px; border-left:3px solid var(--accent);">

@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Student Showcase</title>
-<link rel="stylesheet" href="styles.css?v=6" />
+<link rel="stylesheet" href="styles.css?v=8" />
 </head>
 <body>
 
@@ -21,8 +21,8 @@
   <div class="grid" id="showcaseGrid"><p class="empty-state" id="loadingText"></p></div>
 </div>
 
-<script src="config.js?v=6"></script>
-<script src="app.js?v=6"></script>
+<script src="config.js?v=8"></script>
+<script src="app.js?v=8"></script>
 <script>
 let allItems = [];
 
@@ -40,9 +40,12 @@ function applyText() {
   document.getElementById("loadingText").textContent = t("loading");
 }
 async function load() {
+  const isCurrent = latestWins("showcase-load");
   const course = getCourse();
   const semester = getSemester();
-  allItems = await fetchJSON({ action: "showcase", course, semester });
+  const items = await fetchJSON({ action: "showcase", course, semester });
+  if (!isCurrent()) return;
+  allItems = items;
   render(allItems);
 }
 function render(items) {

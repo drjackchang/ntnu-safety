@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Dashboard</title>
-<link rel="stylesheet" href="styles.css?v=6" />
+<link rel="stylesheet" href="styles.css?v=8" />
 </head>
 <body>
 
@@ -55,8 +55,8 @@
   </div>
 </div>
 
-<script src="config.js?v=6"></script>
-<script src="app.js?v=6"></script>
+<script src="config.js?v=8"></script>
+<script src="app.js?v=8"></script>
 <script>
 let adminKey = sessionStorage.getItem("adminKey") || "";
 
@@ -100,14 +100,17 @@ function subjectLabel(course) {
 }
 
 async function loadAll() {
+  const isCurrent = latestWins("dashboard-loadAll");
   const course = getCourse();
   const semester = getSemester();
   const week = document.getElementById("weekSelect").value;
 
   const students = await fetchJSON({ action: "students", course, semester });
+  if (!isCurrent()) return;
 
   // ---- Attendance (per individual) ----
   const attendance = await fetchJSON({ action: "attendance", course, semester, week });
+  if (!isCurrent()) return;
   const checkedIn = new Set(attendance.map((a) => a.Name));
   const allNames = students.map((s) => s.Name).filter(Boolean);
   const missingAttendance = allNames.filter((n) => !checkedIn.has(n));
@@ -123,12 +126,14 @@ async function loadAll() {
 
   // ---- Missing submissions (ever, this semester) ----
   const submissions = await fetchJSON({ action: "submissions", course, semester });
+  if (!isCurrent()) return;
   const submittedSubjects = new Set(submissions.map((s) => course === "emi" ? s.GroupNumber : s.Names));
   const missingSubmissions = subjects.filter((s) => !submittedSubjects.has(s));
   renderChipList("submissionsMissing", missingSubmissions, `Every ${subjectLabel(course).toLowerCase()} has submitted at least once.`);
 
   // ---- Missing progress for selected week ----
   const progress = await fetchJSON({ action: "progress", course, semester });
+  if (!isCurrent()) return;
   const reportedThisWeek = new Set(progress.filter((p) => String(p.Week) === String(week)).map((p) => p.GroupOrName));
   const missingProgress = subjects.filter((s) => !reportedThisWeek.has(s));
   renderChipList("progressMissing", missingProgress, `Everyone reported progress for week ${week}.`);

@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Progress</title>
-<link rel="stylesheet" href="styles.css?v=6" />
+<link rel="stylesheet" href="styles.css?v=8" />
 </head>
 <body>
 
@@ -73,8 +73,8 @@
   <div class="grid" id="submissionsList"><p class="empty-state" id="submissionsLoadingText"></p></div>
 </div>
 
-<script src="config.js?v=6"></script>
-<script src="app.js?v=6"></script>
+<script src="config.js?v=8"></script>
+<script src="app.js?v=8"></script>
 <script>
 async function init() {
   document.body.setAttribute("data-course", getCourse());
@@ -120,9 +120,11 @@ function populateWeeks() {
 }
 
 async function loadWho() {
+  const isCurrent = latestWins("progress-who");
   const course = getCourse();
   const semester = getSemester();
   const students = await fetchJSON({ action: "students", course, semester });
+  if (!isCurrent()) return;
   const sel = document.getElementById("whoSelect");
 
   if (course === "emi") {
@@ -138,12 +140,14 @@ async function loadWho() {
 
 // ---------- Attendance ----------
 async function loadAttendanceCount() {
+  const isCurrent = latestWins("attendance-count");
   const course = getCourse();
   const semester = getSemester();
   const who = document.getElementById("whoSelect").value;
   const countEl = document.getElementById("attendanceCountText");
   if (!who) { countEl.textContent = ""; return; }
   const rows = await fetchJSON({ action: "attendance", course, semester, name: who });
+  if (!isCurrent()) return;
   countEl.textContent = `${rows.length} ${t("attendanceCount")}`;
 }
 
@@ -179,6 +183,7 @@ document.getElementById("attendanceForm").addEventListener("submit", async (e) =
 
 // ---------- Progress ----------
 async function loadLog() {
+  const isCurrent = latestWins("progress-log");
   const course = getCourse();
   const semester = getSemester();
   const subject = document.getElementById("whoSelect").value;
@@ -186,6 +191,7 @@ async function loadLog() {
   if (!subject) { log.innerHTML = `<p class="empty-state">${t("noProgress")}</p>`; return; }
 
   const entries = await fetchJSON({ action: "progress", course, semester, subject });
+  if (!isCurrent()) return;
   if (!entries.length) { log.innerHTML = `<p class="empty-state">${t("noProgress")}</p>`; return; }
 
   log.innerHTML = entries
@@ -231,6 +237,7 @@ document.getElementById("progressForm").addEventListener("submit", async (e) => 
 
 // ---------- Submissions summary ----------
 async function loadSubmissions() {
+  const isCurrent = latestWins("progress-submissions");
   const course = getCourse();
   const semester = getSemester();
   const subject = document.getElementById("whoSelect").value;
@@ -238,6 +245,7 @@ async function loadSubmissions() {
   if (!subject) { list.innerHTML = `<p class="empty-state">${t("noSubmissions")}</p>`; return; }
 
   const rows = await fetchJSON({ action: "submissions", course, semester, subject });
+  if (!isCurrent()) return;
   if (!rows.length) { list.innerHTML = `<p class="empty-state">${t("noSubmissions")}</p>`; return; }
 
   list.innerHTML = rows.map((r) => `<div class="card">

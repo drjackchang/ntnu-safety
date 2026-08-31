@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Safety Education Course Site</title>
-<link rel="stylesheet" href="styles.css?v=6" />
+<link rel="stylesheet" href="styles.css?v=8" />
 </head>
 <body>
 
@@ -32,8 +32,8 @@
   <p style="margin-top:14px;"><a class="btn secondary" href="showcase.html" id="linkAllShowcase">View all</a></p>
 </div>
 
-<script src="config.js?v=6"></script>
-<script src="app.js?v=6"></script>
+<script src="config.js?v=8"></script>
+<script src="app.js?v=8"></script>
 <script>
 async function init() {
   document.body.setAttribute("data-course", getCourse());
@@ -62,10 +62,12 @@ function applyText() {
 }
 
 async function loadAll() {
+  const isCurrent = latestWins("home-loadAll");
   const course = getCourse();
   const semester = getSemester();
 
   const materials = await fetchJSON({ action: "materials", course, semester });
+  if (!isCurrent()) return;
   const mGrid = document.getElementById("materialsGrid");
   if (!materials.length) {
     mGrid.innerHTML = `<p class="empty-state">${t("noMaterials")}</p>`;
@@ -84,6 +86,7 @@ async function loadAll() {
   groupsGrid.innerHTML = "";
   if (course === "emi") {
     const students = await fetchJSON({ action: "students", course, semester });
+    if (!isCurrent()) return;
     const byGroup = {};
     students.forEach((s) => { const g = s.GroupNumber || "Ungrouped"; (byGroup[g] = byGroup[g] || []).push(s.Name); });
     const groupNames = Object.keys(byGroup).sort();
@@ -96,6 +99,7 @@ async function loadAll() {
   }
 
   const showcase = await fetchJSON({ action: "showcase", course, semester });
+  if (!isCurrent()) return;
   const sGrid = document.getElementById("showcaseGrid");
   if (!showcase.length) {
     sGrid.innerHTML = `<p class="empty-state">${t("noShowcase")}</p>`;
