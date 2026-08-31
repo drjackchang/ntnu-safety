@@ -85,10 +85,23 @@ function clearConnectionError() {
   if (banner) banner.remove();
 }
 
+// ---------- Short in-memory cache ----------
+// Makes flipping back and forth between course/semester feel instant after the
+// first load of each, instead of re-fetching every single switch. Any successful
+// write (postAction) clears the whole cache so newly submitted data shows up
+// right away instead of serving something stale.
+const _fetchCache = new Map();
+const FETCH_CACHE_MS = 30000;
+
 async function fetchJSON(params) {
   if (!gasConfigured()) {
     showConnectionError("config.js still has the placeholder GAS_URL — open it and paste in your deployed Apps Script Web App URL.");
     throw new Error("GAS_URL is not set yet");
+  }
+  const cacheKey = JSON.stringify(params);
+  const cached = _fetchCache.get(cacheKey);
+  if (cached && Date.now() - cached.time < FETCH_CACHE_MS) {
+    return cached.data;
   }
   const url = new URL(GAS_URL);
   Object.keys(params).forEach((k) => url.searchParams.set(k, params[k]));
@@ -114,6 +127,7 @@ async function fetchJSON(params) {
     showConnectionError("Backend error: " + data.error);
   } else {
     clearConnectionError();
+    _fetchCache.set(cacheKey, { data, time: Date.now() });
   }
   return data;
 }
@@ -133,7 +147,9 @@ async function postAction(payload) {
       showConnectionError(`Backend returned an error (HTTP ${res.status}).`);
       return { ok: false, error: "HTTP " + res.status };
     }
-    return await res.json();
+    const result = await res.json();
+    if (result && result.ok) _fetchCache.clear(); // something changed — stop serving stale reads
+    return result;
   } catch (err) {
     showConnectionError("Can't reach the Apps Script backend. Check your internet connection and that GAS_URL in config.js is correct.");
     return { ok: false, error: String(err) };
