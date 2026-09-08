@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Safety Education Course Site</title>
-<link rel="stylesheet" href="styles.css?v=2" />
+<link rel="stylesheet" href="styles.css?v=3" />
 </head>
 <body>
 
@@ -26,12 +26,14 @@
 <div class="wrap" id="top">
 
   <div class="course-toggle">
-    <button data-course="emi">Safety Education (EMI)</button>
+    <button data-course="emi" class="active">Safety Education (EMI)</button>
     <button data-course="grad">安全教育專題研究</button>
   </div>
 
-  <h1 id="pageTitle">Safety Education</h1>
-  <p class="lead" id="pageLead"></p>
+  <div class="hero-section">
+    <h1 id="pageTitle">Safety Education</h1>
+    <p class="lead" id="pageLead"></p>
+  </div>
 
   <h2 id="objectives"><span id="objectivesHeading">Course objectives</span></h2>
   <ul class="objectives-list" id="objectivesList"></ul>
@@ -60,16 +62,27 @@
   <p class="form-note" id="supportNote"></p>
 
   <h2 id="submit"><span id="submitHeading">Submit progress</span></h2>
-  <form class="stack" id="submitForm">
-    <label><span id="lblWho">Your name or group</span><input id="whoInput" type="text" /></label>
-    <label><span id="lblMsg">Progress update</span><textarea id="msgInput" rows="5"></textarea></label>
-    <div class="field-error" id="submitError"></div>
-    <button class="btn" type="submit" id="submitBtn">Open email to send</button>
+  
+  <!-- 表單更新：填寫完成後會直接寄到你的信箱 -->
+  <!-- 只要到 https://formspree.io/ 免費註冊，建立一個表單並把 action 網址貼在下方即可 -->
+  <form class="stack" id="submitForm" action="https://formspree.io/f/xqpkyjrj" method="POST">
+    <!-- 隱藏欄位：讓你在信箱收件時知道是哪一門課 -->
+    <input type="hidden" name="Course" id="courseHiddenInput" value="Safety Education (EMI)">
+    
+    <label>
+      <span id="lblWho">Your name or group</span>
+      <input name="Name_or_Group" id="whoInput" type="text" required />
+    </label>
+    <label>
+      <span id="lblMsg">Progress update</span>
+      <textarea name="Message" id="msgInput" rows="5" required></textarea>
+    </label>
+    <button class="btn" type="submit" id="submitBtn">Send Update</button>
     <p class="form-note" id="submitNote"></p>
   </form>
 
 </div>
 
-<script src="script.js?v=2"></script>
+<script src="script.js?v=3"></script>
 </body>
 </html>
