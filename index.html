@@ -4,115 +4,72 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Safety Education Course Site</title>
-<link rel="stylesheet" href="styles.css?v=10" />
+<link rel="stylesheet" href="styles.css?v=2" />
 </head>
 <body>
 
-<header class="site-header"><div id="navHost"></div></header>
-<div id="mobileNavHost"></div>
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand" id="brandText">Safety Education</div>
+    <nav class="quick-nav">
+      <a href="#top" id="navHome">Home</a>
+      <a href="#objectives" id="navObjectives">Objectives</a>
+      <a href="#grading" id="navGrading">Grading</a>
+      <a href="#materials" id="navMaterials">Materials</a>
+      <a href="#showcase" id="navShowcase">Showcase</a>
+      <a href="#references" id="navReferences">References</a>
+      <a href="#submit" id="navSubmit">Submit</a>
+    </nav>
+  </div>
+</header>
 
-<div class="wrap">
-  <div id="segHost"></div>
-  <div class="semester-select-wrap"><select class="select-pill" id="semesterSelect"></select></div>
+<div class="wrap" id="top">
+
+  <div class="course-toggle">
+    <button data-course="emi">Safety Education (EMI)</button>
+    <button data-course="grad">安全教育專題研究</button>
+  </div>
 
   <h1 id="pageTitle">Safety Education</h1>
-  <p class="lead" id="pageLead">Course materials, past student projects, and assignment links for this course.</p>
+  <p class="lead" id="pageLead"></p>
 
-  <div id="announcementsHost"></div>
+  <h2 id="objectives"><span id="objectivesHeading">Course objectives</span></h2>
+  <ul class="objectives-list" id="objectivesList"></ul>
 
-  <h2 id="materialsHeading">Materials</h2>
-  <div class="grid" id="materialsGrid"><p class="empty-state" id="materialsLoading"></p></div>
-  <p style="margin-top:14px;"><a class="btn secondary" href="materials.html" id="linkAllMaterials">View all</a></p>
+  <h2 id="grading"><span id="gradingHeading">Grading</span></h2>
+  <div class="grading-panel" id="gradingPanel"></div>
+
+  <h2 id="methods"><span id="methodsHeading">Teaching methods</span></h2>
+  <ul class="methods-list" id="methodsList"></ul>
+
+  <h2 id="ai-policy"><span id="aiPolicyHeading">AI use policy</span></h2>
+  <p class="lead" id="aiPolicyText"></p>
+  <ul class="sdgs-list" id="sdgsList"></ul>
+
+  <h2 id="materials"><span id="materialsHeading">Weekly materials</span></h2>
+  <div class="grid" id="materialsGrid"></div>
+
+  <h2 id="showcase"><span id="showcaseHeading">Student showcase</span></h2>
+  <div class="grid" id="showcaseGrid"></div>
 
   <h2 id="groupsHeading" style="display:none;">This semester's groups</h2>
   <div class="grid" id="groupsGrid"></div>
 
-  <h2 id="showcaseHeading">Showcase</h2>
-  <div class="grid" id="showcaseGrid"><p class="empty-state" id="showcaseLoading"></p></div>
-  <p style="margin-top:14px;"><a class="btn secondary" href="showcase.html" id="linkAllShowcase">View all</a></p>
+  <h2 id="references"><span id="referencesHeading">References</span></h2>
+  <ul class="references-list" id="referencesList"></ul>
+  <p class="form-note" id="supportNote"></p>
+
+  <h2 id="submit"><span id="submitHeading">Submit progress</span></h2>
+  <form class="stack" id="submitForm">
+    <label><span id="lblWho">Your name or group</span><input id="whoInput" type="text" /></label>
+    <label><span id="lblMsg">Progress update</span><textarea id="msgInput" rows="5"></textarea></label>
+    <div class="field-error" id="submitError"></div>
+    <button class="btn" type="submit" id="submitBtn">Open email to send</button>
+    <p class="form-note" id="submitNote"></p>
+  </form>
+
 </div>
 
-<script src="config.js?v=10"></script>
-<script src="app.js?v=10"></script>
-<script>
-async function init() {
-  document.body.setAttribute("data-course", getCourse());
-  renderNav("home");
-  renderCourseSegmented(document.getElementById("segHost"), () => { document.body.setAttribute("data-course", getCourse()); renderNav("home"); applyText(); loadAll(); renderAnnouncements(document.getElementById("announcementsHost")); });
-  await populateSemesterSelect(document.getElementById("semesterSelect"));
-  document.getElementById("semesterSelect").addEventListener("change", (e) => { setSemester(e.target.value); loadAll(); renderAnnouncements(document.getElementById("announcementsHost")); });
-  applyText();
-  await loadAll();
-  renderAnnouncements(document.getElementById("announcementsHost"));
-}
-
-function applyText() {
-  const isEmi = getCourse() === "emi";
-  document.getElementById("pageTitle").textContent = isEmi ? "Safety Education" : "安全教育專題研究";
-  document.getElementById("pageLead").textContent = isEmi
-    ? "Course materials, past student projects, and assignment links for this course."
-    : "課程素材、歷年學生成果與作業連結。";
-  document.getElementById("materialsHeading").textContent = t("materials");
-  document.getElementById("showcaseHeading").textContent = t("showcase");
-  document.getElementById("linkAllMaterials").textContent = t("viewAll") || "View all";
-  document.getElementById("linkAllShowcase").textContent = t("viewAll") || "View all";
-  setText("materialsLoading", t("loading"));
-  setText("showcaseLoading", t("loading"));
-  document.getElementById("groupsHeading").style.display = isEmi ? "block" : "none";
-}
-
-async function loadAll() {
-  const isCurrent = latestWins("home-loadAll");
-  const course = getCourse();
-  const semester = getSemester();
-
-  const materials = await fetchJSON({ action: "materials", course, semester });
-  if (!isCurrent()) return;
-  const mGrid = document.getElementById("materialsGrid");
-  if (!materials.length) {
-    mGrid.innerHTML = `<p class="empty-state">${t("noMaterials")}</p>`;
-  } else {
-    const weekKey = course === "emi" ? "Week" : "週次";
-    const topicKey = course === "emi" ? "Topic" : "主題";
-    const descKey = course === "emi" ? "Description" : "說明";
-    mGrid.innerHTML = materials.slice(0, 4).map((m) => `<div class="card">
-        <p class="week-tag">${t("week")} ${escapeHtml(m[weekKey])}</p>
-        <p class="card-title">${escapeHtml(m[topicKey])}</p>
-        <p class="card-desc">${escapeHtml(String(m[descKey] || "").slice(0, 90))}${String(m[descKey] || "").length > 90 ? "…" : ""}</p>
-      </div>`).join("");
-  }
-
-  const groupsGrid = document.getElementById("groupsGrid");
-  groupsGrid.innerHTML = "";
-  if (course === "emi") {
-    const students = await fetchJSON({ action: "students", course, semester });
-    if (!isCurrent()) return;
-    const byGroup = {};
-    students.forEach((s) => { const g = s.GroupNumber || "Ungrouped"; (byGroup[g] = byGroup[g] || []).push(s.Name); });
-    const groupNames = Object.keys(byGroup).sort();
-    if (groupNames.length) {
-      groupsGrid.innerHTML = groupNames.map((g) => `<div class="card">
-          <p class="card-title">${escapeHtml(g)}</p>
-          <p class="card-desc">${byGroup[g].map(escapeHtml).join(", ")}</p>
-        </div>`).join("");
-    }
-  }
-
-  const showcase = await fetchJSON({ action: "showcase", course, semester });
-  if (!isCurrent()) return;
-  const sGrid = document.getElementById("showcaseGrid");
-  if (!showcase.length) {
-    sGrid.innerHTML = `<p class="empty-state">${t("noShowcase")}</p>`;
-  } else {
-    sGrid.innerHTML = showcase.slice(0, 4).map((s) => `<a class="showcase-card" href="project.html?id=${encodeURIComponent(s.ID)}">
-        <canvas width="400" height="200" data-title="${escapeHtml(s.Title)}" data-names="${escapeHtml(s.Names)}" data-semester="${escapeHtml(s.Semester)}" data-color="${escapeHtml(s.CoverColorHex)}"></canvas>
-        <div class="meta"><span>${escapeHtml(s.Semester || "")}</span><span>${escapeHtml(s.GroupNumber || "")}</span></div>
-      </a>`).join("");
-    sGrid.querySelectorAll("canvas").forEach((c) => generateCoverCanvas(c, { title: c.dataset.title, names: c.dataset.names, semester: c.dataset.semester, colorHex: c.dataset.color }));
-  }
-}
-
-init();
-</script>
+<script src="script.js?v=2"></script>
 </body>
 </html>
