@@ -1,88 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Safety Education Course Site</title>
-<link rel="stylesheet" href="styles.css?v=3" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Safety Education Course</title>
+  <link rel="stylesheet" href="styles.css?v=4" />
 </head>
 <body>
 
-<header class="site-header">
-  <div class="header-inner">
-    <div class="brand" id="brandText">Safety Education</div>
-    <nav class="quick-nav">
-      <a href="#top" id="navHome">Home</a>
-      <a href="#objectives" id="navObjectives">Objectives</a>
-      <a href="#grading" id="navGrading">Grading</a>
-      <a href="#materials" id="navMaterials">Materials</a>
-      <a href="#showcase" id="navShowcase">Showcase</a>
-      <a href="#references" id="navReferences">References</a>
-      <a href="#submit" id="navSubmit">Submit</a>
-    </nav>
-  </div>
-</header>
+  <!-- 毛玻璃頂部導覽列 -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand" id="brandText">Safety Education</div>
+      <nav class="nav-links">
+        <a href="#materials" id="navMaterials">Materials</a>
+        <a href="#grading" id="navGrading">Grading</a>
+        <a href="#showcase" id="navShowcase">Showcase</a>
+        <a href="#submit" class="nav-btn" id="navSubmit">Submit</a>
+      </nav>
+    </div>
+  </header>
 
-<div class="wrap" id="top">
-
-  <div class="course-toggle">
-    <button data-course="emi" class="active">Safety Education (EMI)</button>
-    <button data-course="grad">安全教育專題研究</button>
-  </div>
-
-  <div class="hero-section">
-    <h1 id="pageTitle">Safety Education</h1>
-    <p class="lead" id="pageLead"></p>
-  </div>
-
-  <h2 id="objectives"><span id="objectivesHeading">Course objectives</span></h2>
-  <ul class="objectives-list" id="objectivesList"></ul>
-
-  <h2 id="grading"><span id="gradingHeading">Grading</span></h2>
-  <div class="grading-panel" id="gradingPanel"></div>
-
-  <h2 id="methods"><span id="methodsHeading">Teaching methods</span></h2>
-  <ul class="methods-list" id="methodsList"></ul>
-
-  <h2 id="ai-policy"><span id="aiPolicyHeading">AI use policy</span></h2>
-  <p class="lead" id="aiPolicyText"></p>
-  <ul class="sdgs-list" id="sdgsList"></ul>
-
-  <h2 id="materials"><span id="materialsHeading">Weekly materials</span></h2>
-  <div class="grid" id="materialsGrid"></div>
-
-  <h2 id="showcase"><span id="showcaseHeading">Student showcase</span></h2>
-  <div class="grid" id="showcaseGrid"></div>
-
-  <h2 id="groupsHeading" style="display:none;">This semester's groups</h2>
-  <div class="grid" id="groupsGrid"></div>
-
-  <h2 id="references"><span id="referencesHeading">References</span></h2>
-  <ul class="references-list" id="referencesList"></ul>
-  <p class="form-note" id="supportNote"></p>
-
-  <h2 id="submit"><span id="submitHeading">Submit progress</span></h2>
-  
-  <!-- 表單更新：填寫完成後會直接寄到你的信箱 -->
-  <!-- 只要到 https://formspree.io/ 免費註冊，建立一個表單並把 action 網址貼在下方即可 -->
-  <form class="stack" id="submitForm" action="https://formspree.io/f/xqpkyjrj" method="POST">
-    <!-- 隱藏欄位：讓你在信箱收件時知道是哪一門課 -->
-    <input type="hidden" name="Course" id="courseHiddenInput" value="Safety Education (EMI)">
+  <main class="container">
     
-    <label>
-      <span id="lblWho">Your name or group</span>
-      <input name="Name_or_Group" id="whoInput" type="text" required />
-    </label>
-    <label>
-      <span id="lblMsg">Progress update</span>
-      <textarea name="Message" id="msgInput" rows="5" required></textarea>
-    </label>
-    <button class="btn" type="submit" id="submitBtn">Send Update</button>
-    <p class="form-note" id="submitNote"></p>
-  </form>
+    <!-- 課程切換器 -->
+    <div class="course-switcher">
+      <button data-course="emi" class="active">Safety Education (EMI)</button>
+      <button data-course="grad">安全教育專題研究</button>
+    </div>
 
-</div>
+    <!-- 課程簡介 Hero Section -->
+    <section class="hero">
+      <h1 id="pageTitle">Safety Education</h1>
+      <p class="subtitle" id="pageLead"></p>
+      <div class="tags-container" id="sdgsList"></div>
+    </section>
 
-<script src="script.js?v=3"></script>
+    <!-- 課程目標與評分 -->
+    <section class="info-grid">
+      <div class="info-card">
+        <h2 id="objectivesHeading">Course Objectives</h2>
+        <ul class="clean-list" id="objectivesList"></ul>
+      </div>
+      <div class="info-card">
+        <h2 id="gradingHeading">Grading</h2>
+        <div class="grading-wrapper" id="gradingPanel"></div>
+      </div>
+    </section>
+
+    <!-- 每週教材 -->
+    <section class="materials-section" id="materials">
+      <div class="section-header">
+        <h2 id="materialsHeading">Weekly Materials</h2>
+        <p class="section-desc" id="aiPolicyText"></p>
+      </div>
+      <div class="grid-layout" id="materialsGrid"></div>
+    </section>
+
+    <!-- 歷年成果 -->
+    <section class="showcase-section" id="showcase">
+      <h2 id="showcaseHeading">Student Showcase</h2>
+      <div class="grid-layout" id="showcaseGrid"></div>
+    </section>
+
+    <section class="groups-section" id="groupsSection" style="display:none;">
+      <h2 id="groupsHeading">This semester's groups</h2>
+      <div class="grid-layout" id="groupsGrid"></div>
+    </section>
+
+    <!-- 參考書目 -->
+    <section class="references-section">
+      <h2 id="referencesHeading">References</h2>
+      <ul class="ref-list" id="referencesList"></ul>
+      <p class="note-text" id="supportNote"></p>
+    </section>
+
+    <!-- 進度回報表單 (已串接你的 Formspree) -->
+    <section class="submit-section" id="submit">
+      <div class="form-card">
+        <h2 id="submitHeading">Submit Progress</h2>
+        <form action="https://formspree.io/f/xqpkyjrj" method="POST" class="modern-form">
+          <input type="hidden" name="Course" id="courseHiddenInput" value="Safety Education (EMI)">
+          
+          <div class="form-group">
+            <label for="whoInput" id="lblWho">Your name or group</label>
+            <input type="text" name="Name_or_Group" id="whoInput" required />
+          </div>
+          
+          <div class="form-group">
+            <label for="msgInput" id="lblMsg">Progress update</label>
+            <textarea name="Message" id="msgInput" rows="4" required></textarea>
+          </div>
+          
+          <button type="submit" class="submit-btn" id="submitBtn">Send Update</button>
+          <p class="form-note" id="submitNote"></p>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="script.js?v=4"></script>
 </body>
 </html>
