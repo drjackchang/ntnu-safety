@@ -188,6 +188,26 @@
   .tag{ font-size:11px; font-weight:600; padding:3px 9px; border:1px solid var(--line); color:var(--ink-soft); }
 
   footer{ max-width:1080px; margin:0 auto; padding:30px 24px 60px; color:var(--ink-soft); font-size:12.5px; border-top:1px solid var(--line); margin-top:40px;}
+
+  /* ---------- progress report form ---------- */
+  .pr-form{ max-width:520px; background:var(--paper-raised); border:1px solid var(--line); padding:26px 26px 24px; display:flex; flex-direction:column; gap:18px;}
+  .pr-form label{ display:flex; flex-direction:column; gap:6px; font-size:13px; font-weight:600; color:var(--ink-soft); }
+  .pr-row{ display:grid; grid-template-columns:1fr 1.4fr; gap:16px; }
+  @media (max-width:520px){ .pr-row{ grid-template-columns:1fr; } }
+  .pr-form input, .pr-form select, .pr-form textarea{
+    font-family:'IBM Plex Sans',sans-serif; font-size:14.5px; color:var(--ink); font-weight:400;
+    border:1px solid var(--line); background:var(--paper); padding:9px 11px; border-radius:2px; resize:vertical;
+  }
+  .pr-form input:focus, .pr-form select:focus, .pr-form textarea:focus{ outline:none; border-color:var(--accent); }
+  .pr-error{ font-size:12.5px; color:#B3261E; min-height:1em; }
+  .pr-submit{
+    align-self:flex-start; background:var(--accent); color:#fff; border:none; padding:11px 22px;
+    font-size:14px; font-weight:600; cursor:pointer; font-family:'IBM Plex Sans',sans-serif;
+  }
+  .pr-submit:disabled{ opacity:.6; cursor:default; }
+  .pr-status{ font-size:13px; min-height:1.2em; }
+  .pr-status.ok{ color:#1E7A34; }
+  .pr-status.error{ color:#B3261E; }
 </style>
 </head>
 <body data-course="emi">
@@ -202,6 +222,7 @@
       <button role="tab" aria-selected="true" data-tab="overview">總覽 Overview</button>
       <button role="tab" aria-selected="false" data-tab="modules">每週單元 Weekly Modules</button>
       <button role="tab" aria-selected="false" data-tab="refs">參考資源總表 All References</button>
+      <button role="tab" aria-selected="false" data-tab="progress">回報進度 Report Progress</button>
     </nav>
     <div class="course-switch" role="tablist" aria-label="course">
       <button aria-pressed="true" data-course="emi">EMI 大學部</button>
@@ -280,6 +301,35 @@
       <thead><tr><th style="width:24%">主題 / Topic</th><th style="width:38%">資源網站 Resource</th><th>學習單／活動 Worksheet / Activity</th></tr></thead>
       <tbody></tbody>
     </table>
+  </section>
+
+  <!-- ================= PROGRESS REPORT ================= -->
+  <section class="panel" id="panel-progress">
+    <div class="lede">
+      <p class="kicker" id="pr-kicker">Quick check-in form</p>
+      <h1 id="pr-h1">Report Progress</h1>
+      <p id="pr-desc">Submitting sends a notification email to the instructor and saves a record on the backend. No login required.</p>
+    </div>
+
+    <form class="pr-form" id="progressReportForm">
+      <div class="pr-row">
+        <label><span id="pr-lbl-week">Week</span>
+          <select name="week" id="prWeek"></select>
+        </label>
+        <label><span id="pr-lbl-who">Name / Group</span>
+          <input type="text" name="who" id="prWho" required placeholder="e.g. Group 3 or Jane Lee" />
+        </label>
+      </div>
+      <label><span id="pr-lbl-text">This week's progress / anything for the instructor</span>
+        <textarea name="text" id="prText" rows="5" required placeholder="What did you get done this week? Where are you stuck? What do you need from the instructor?"></textarea>
+      </label>
+      <label><span id="pr-lbl-link">Related link (optional)</span>
+        <input type="text" name="link" id="prLink" placeholder="https://" />
+      </label>
+      <div class="pr-error" id="prError"></div>
+      <button class="pr-submit" type="submit" id="prSubmitBtn">Submit &amp; notify instructor</button>
+      <div class="pr-status" id="prStatus"></div>
+    </form>
   </section>
 
 </div>
@@ -485,6 +535,31 @@ grad: {
 }
 };
 
+/* ---------------- backend (Google Apps Script) config ----------------
+   Reuses the same Web App deployment already wired up in config.js for
+   the rest of the site. If you deploy a *new* Apps Script for this page
+   instead, just replace GAS_URL below with that Web App's URL.
+   See the accompanying Code.gs snippet for the "progressReport" action
+   this form calls (append a row + email the instructor).
+---------------------------------------------------------------------- */
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwT84UG-tNcJ1DqcEv9Qtsw-ELH35YDc5tux9-_Bzao_7koL2_yB5axaA3p2bBHwGbh/exec";
+
+async function postAction(payload){
+  try{
+    const res = await fetch(GAS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, // avoids a CORS preflight against Apps Script
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) return { ok:false, error: "HTTP " + res.status };
+    return await res.json();
+  } catch(err){
+    return { ok:false, error: String(err) };
+  }
+}
+
+function isValidUrl(s){ return /^https?:\/\//i.test(s); }
+
 /* ---------------- render logic ---------------- */
 let state = { course: "emi", tab: "overview" };
 
@@ -598,6 +673,7 @@ function renderAll(){
   renderOverview();
   renderModules();
   renderRefs();
+  renderProgressPanel();
 }
 
 document.querySelectorAll(".course-switch button").forEach(btn=>{
@@ -606,6 +682,96 @@ document.querySelectorAll(".course-switch button").forEach(btn=>{
     document.querySelectorAll(".course-switch button").forEach(b=>b.setAttribute("aria-pressed", b===btn));
     renderAll();
   });
+});
+
+// ---------------- progress report form ----------------
+const PR_I18N = {
+  emi: {
+    kicker: "Quick check-in form",
+    h1: "Report Progress",
+    desc: "Submitting sends a notification email to the instructor and saves a record on the backend. No login required.",
+    week: "Week", who: "Name / Group", whoPlaceholder: "e.g. Group 3 or Jane Lee",
+    text: "This week's progress / anything for the instructor",
+    textPlaceholder: "What did you get done this week? Where are you stuck? What do you need from the instructor?",
+    link: "Related link (optional)",
+    submit: "Submit & notify instructor", sending: "Sending…",
+    errRequired: "Name/Group and progress text are required.",
+    errLink: "Link must start with http(s)://",
+    ok: "Sent — the instructor will get a notification email.",
+    errPrefix: "Failed to send: ",
+    errFallback: "check that GAS_URL is deployed as a Web App with access set to \u201cAnyone\u201d.",
+  },
+  grad: {
+    kicker: "簡易回報表單",
+    h1: "回報進度",
+    desc: "填寫後會寄一封通知信到老師信箱，同時會存一筆紀錄到後端表單。不需要帳號登入。",
+    week: "週次", who: "姓名／組別", whoPlaceholder: "例如：第3組 或 王小明",
+    text: "這週進度／想跟老師說的事",
+    textPlaceholder: "這週完成了什麼？卡在哪裡？需要老師協助什麼？",
+    link: "相關連結（選填）",
+    submit: "送出並通知老師", sending: "送出中…",
+    errRequired: "姓名／組別與進度內容為必填。",
+    errLink: "連結請以 http(s):// 開頭。",
+    ok: "已送出，老師會收到通知信。",
+    errPrefix: "送出失敗：",
+    errFallback: "請確認 GAS_URL 已部署為 Web App，且權限設為「任何人」。",
+  }
+};
+function pr(){ return PR_I18N[state.course] || PR_I18N.emi; }
+
+function renderProgressPanel(){
+  const s = pr();
+  document.getElementById("pr-kicker").textContent = s.kicker;
+  document.getElementById("pr-h1").textContent = s.h1;
+  document.getElementById("pr-desc").textContent = s.desc;
+  document.getElementById("pr-lbl-week").textContent = s.week;
+  document.getElementById("pr-lbl-who").textContent = s.who;
+  document.getElementById("prWho").placeholder = s.whoPlaceholder;
+  document.getElementById("pr-lbl-text").textContent = s.text;
+  document.getElementById("prText").placeholder = s.textPlaceholder;
+  document.getElementById("pr-lbl-link").textContent = s.link;
+  document.getElementById("prSubmitBtn").textContent = s.submit;
+  populateProgressWeeks();
+}
+
+function populateProgressWeeks(){
+  const s = pr();
+  const opts = Array.from({length:16}, (_,i)=>i+1).map(w=>`<option value="${w}">${s.week} ${w}</option>`).join("");
+  document.getElementById("prWeek").innerHTML = opts;
+}
+
+document.getElementById("progressReportForm").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const form = e.target;
+  const s = pr();
+  const errEl = document.getElementById("prError");
+  const statusEl = document.getElementById("prStatus");
+  errEl.textContent = ""; statusEl.textContent = ""; statusEl.className = "pr-status";
+
+  const who = form.who.value.trim();
+  const text = form.text.value.trim();
+  const link = form.link.value.trim();
+  if (!who || !text){ errEl.textContent = s.errRequired; return; }
+  if (link && !isValidUrl(link)){ errEl.textContent = s.errLink; return; }
+
+  const btn = document.getElementById("prSubmitBtn");
+  btn.disabled = true; btn.textContent = s.sending;
+  const res = await postAction({
+    action: "progressReport",
+    course: state.course,
+    week: form.week.value,
+    who, text, link,
+  });
+  btn.disabled = false; btn.textContent = s.submit;
+
+  if (res.ok){
+    statusEl.textContent = s.ok;
+    statusEl.classList.add("ok");
+    form.text.value = ""; form.link.value = "";
+  } else {
+    statusEl.textContent = s.errPrefix + (res.error || s.errFallback);
+    statusEl.classList.add("error");
+  }
 });
 
 document.querySelectorAll(".tabs button").forEach(btn=>{
