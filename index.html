@@ -1,105 +1,623 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Safety Education Course</title>
-  <link rel="stylesheet" href="styles.css?v=4" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>安全教育 Safety Education — Course LMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F6F2;
+    --paper-raised:#FFFFFF;
+    --ink:#171A1E;
+    --ink-soft:#565B63;
+    --line:#DCDFD8;
+    --emi:#A6192E;      /* 師大紅 institutional red — EMI course accent */
+    --emi-tint:#F6E8EA;
+    --grad:#14315E;     /* 師大藍 institutional navy — grad seminar accent */
+    --grad-tint:#E7ECF3;
+    --amber:#A9660A;    /* hazard-amber, used sparingly for the worksheet/activity tag */
+    --amber-tint:#F5EADA;
+    --accent: var(--emi);
+    --accent-tint: var(--emi-tint);
+    --radius:3px;
+  }
+  body[data-course="grad"]{ --accent: var(--grad); --accent-tint: var(--grad-tint); }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:16px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.serif{ font-family:'Newsreader', serif; font-weight:600; letter-spacing:-0.01em; }
+  a{ color:var(--accent); }
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible{
+    outline:2px solid var(--accent); outline-offset:2px;
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:20;
+    background:var(--paper-raised);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar-inner{
+    max-width:1080px; margin:0 auto; padding:0 24px;
+    display:flex; align-items:center; justify-content:space-between; gap:24px;
+    height:64px;
+  }
+  .brand{ display:flex; align-items:baseline; gap:10px; white-space:nowrap; }
+  .brand .mark{
+    width:26px;height:26px; flex:none;
+    background: repeating-linear-gradient(45deg, var(--accent), var(--accent) 4px, var(--paper-raised) 4px, var(--paper-raised) 8px);
+    border:1.5px solid var(--accent);
+    transition:background .2s, border-color .2s;
+  }
+  .brand-text{ font-family:'Newsreader',serif; font-weight:600; font-size:18px; }
+  .brand-text small{ display:block; font-family:'IBM Plex Sans',sans-serif; font-weight:500; font-size:11.5px; color:var(--ink-soft); letter-spacing:.02em;}
+
+  .course-switch{ display:flex; gap:2px; background:var(--paper); border:1px solid var(--line); padding:2px; }
+  .course-switch button{
+    font-family:'IBM Plex Sans',sans-serif; font-size:13.5px; font-weight:600;
+    padding:8px 16px; border:none; background:transparent; color:var(--ink-soft); cursor:pointer;
+  }
+  .course-switch button[aria-pressed="true"]{ background:var(--paper-raised); color:var(--accent); box-shadow: inset 0 0 0 1px var(--line);}
+
+  .tabs{ display:flex; gap:26px; }
+  .tabs button{
+    font-family:'IBM Plex Sans',sans-serif; font-size:14.5px; font-weight:500; color:var(--ink-soft);
+    background:none; border:none; padding:10px 0; cursor:pointer; position:relative;
+  }
+  .tabs button[aria-selected="true"]{ color:var(--ink); }
+  .tabs button[aria-selected="true"]::after{
+    content:""; position:absolute; left:0; right:0; bottom:-1px; height:2px; background:var(--accent);
+  }
+
+  @media (max-width:760px){
+    .topbar-inner{ height:auto; flex-wrap:wrap; padding:12px 18px; gap:10px 18px;}
+    .tabs{ order:3; width:100%; overflow-x:auto; gap:20px; }
+  }
+
+  /* ---------- layout ---------- */
+  .shell{ max-width:1080px; margin:0 auto; padding:40px 24px 100px; }
+  .lede{ max-width:640px; margin-bottom:36px; }
+  .lede .kicker{ font-size:13px; font-weight:600; color:var(--accent); margin:0 0 8px; }
+  .lede h1{ font-size:34px; margin:0 0 10px; line-height:1.15; }
+  .lede p{ color:var(--ink-soft); margin:0; font-size:15.5px; }
+
+  .panel{ display:none; }
+  .panel.active{ display:block; }
+
+  /* ---------- overview page ---------- */
+  .stat-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line); border:1px solid var(--line); margin-bottom:40px;}
+  .stat{ background:var(--paper-raised); padding:18px 20px; }
+  .stat b{ display:block; font-family:'Newsreader',serif; font-size:26px; font-weight:600;}
+  .stat span{ font-size:12.5px; color:var(--ink-soft); }
+  @media (max-width:700px){ .stat-row{ grid-template-columns:repeat(2,1fr);} }
+
+  .two-col{ display:grid; grid-template-columns:1.3fr 1fr; gap:32px; align-items:start; }
+  @media (max-width:820px){ .two-col{ grid-template-columns:1fr; } }
+
+  .block{ margin-bottom:34px; }
+  .block h2{ font-size:20px; margin:0 0 14px; display:flex; align-items:baseline; gap:10px;}
+  .block h2 .idx{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--accent); font-weight:500;}
+
+  .intro-text{ font-size:14.5px; color:var(--ink); background:var(--paper-raised); border:1px solid var(--line); border-left:3px solid var(--accent); padding:16px 18px; margin:0 0 10px;}
+  .intro-text.zh{ font-size:14.5px; }
+
+  table.obj-table{ width:100%; border-collapse:collapse; font-size:13.8px; background:var(--paper-raised); border:1px solid var(--line);}
+  table.obj-table th{ text-align:left; font-size:11.5px; font-weight:600; color:var(--ink-soft); padding:10px 14px; border-bottom:1px solid var(--line); background:var(--paper);}
+  table.obj-table td{ padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:top;}
+  table.obj-table tr:last-child td{ border-bottom:none; }
+
+  .assess-list{ list-style:none; margin:0; padding:0; background:var(--paper-raised); border:1px solid var(--line);}
+  .assess-list li{ display:flex; justify-content:space-between; gap:12px; padding:11px 16px; border-bottom:1px solid var(--line); font-size:14px;}
+  .assess-list li:last-child{ border-bottom:none;}
+  .assess-list b{ font-family:'IBM Plex Mono',monospace; font-weight:500; color:var(--accent); font-size:13.5px; white-space:nowrap;}
+
+  .pill-row{ display:flex; flex-wrap:wrap; gap:6px; }
+  .pill{ font-size:12px; padding:4px 10px; background:var(--accent-tint); color:var(--accent); border:1px solid transparent; font-weight:600;}
+
+  .ai-note{ font-size:13.8px; background:var(--amber-tint); border:1px solid #E4CFA0; padding:14px 16px; color:#5C3E0D;}
+  .ai-note b{ color:#4A3209; }
+
+  /* ---------- modules page ---------- */
+  .modules-layout{ display:grid; grid-template-columns:220px 1fr; gap:36px; align-items:start; }
+  @media (max-width:820px){ .modules-layout{ grid-template-columns:1fr; } }
+
+  .week-nav{ position:sticky; top:80px; }
+  .week-nav ol{ list-style:none; margin:0; padding:0; border-left:1px solid var(--line); }
+  .week-nav li{ margin:0; }
+  .week-nav a{
+    display:block; padding:7px 0 7px 16px; font-size:13px; color:var(--ink-soft); text-decoration:none;
+    border-left:2px solid transparent; margin-left:-1px;
+  }
+  .week-nav a:hover{ color:var(--ink); }
+  .week-nav a.current{ color:var(--accent); border-left-color:var(--accent); font-weight:600;}
+  @media (max-width:820px){
+    .week-nav{ position:static; }
+    .week-nav ol{ display:flex; overflow-x:auto; border-left:none; border-bottom:1px solid var(--line); gap:2px; }
+    .week-nav a{ padding:8px 12px; border-left:none; border-bottom:2px solid transparent; white-space:nowrap;}
+    .week-nav a.current{ border-left-color:transparent; border-bottom-color:var(--accent);}
+  }
+
+  .module{ background:var(--paper-raised); border:1px solid var(--line); margin-bottom:16px; scroll-margin-top:80px; }
+  .module-head{
+    display:flex; align-items:flex-start; gap:16px; padding:18px 20px; cursor:pointer; user-select:none;
+  }
+  .wk-badge{
+    flex:none; width:46px; height:46px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:var(--accent); color:#fff; clip-path:polygon(0 0,100% 0,100% 100%,20% 100%);
+  }
+  .wk-badge b{ font-family:'IBM Plex Mono',monospace; font-size:16px; line-height:1; }
+  .wk-badge span{ font-size:8px; letter-spacing:.03em; opacity:.85; }
+  .module-head .titles{ flex:1; min-width:0; }
+  .module-head .topic{ font-family:'Newsreader',serif; font-weight:600; font-size:17.5px; margin:0 0 3px; }
+  .module-head .date{ font-size:12px; color:var(--ink-soft); }
+  .module-head .chev{ flex:none; color:var(--ink-soft); font-size:13px; margin-top:4px; transition:transform .15s; }
+  .module.open .chev{ transform:rotate(180deg); }
+
+  .module-body{ display:none; padding:0 20px 22px 82px; }
+  .module.open .module-body{ display:block; }
+  @media (max-width:600px){ .module-body{ padding-left:20px; } .wk-badge{ width:40px; height:40px;} }
+
+  .content-text{ font-size:14.3px; color:var(--ink); margin:0 0 16px; max-width:64ch; }
+
+  .res-heading{ font-size:11.5px; font-weight:700; color:var(--ink-soft); margin:0 0 8px; display:flex; align-items:center; gap:7px;}
+  .res-heading .sw{ width:9px; height:9px; background:var(--accent); flex:none; }
+  .res-heading.worksheet .sw{ background:var(--amber); }
+
+  .res-list{ list-style:none; margin:0 0 18px; padding:0; }
+  .res-list li{ font-size:13.6px; margin-bottom:7px; padding-left:14px; position:relative; }
+  .res-list li::before{ content:"—"; position:absolute; left:0; color:var(--ink-soft); }
+  .res-list a{ font-weight:600; }
+  .res-list .note{ display:block; color:var(--ink-soft); font-size:12.8px; margin-top:1px; }
+
+  .worksheet-box{ background:var(--amber-tint); border:1px solid #E4CFA0; padding:12px 14px; font-size:13.6px; margin-bottom:4px;}
+  .worksheet-box a{ color:#7A4C05; font-weight:600; }
+  .worksheet-box .note{ color:#6B4D14; display:block; margin-top:3px; font-size:12.8px;}
+  .no-item{ font-size:13px; color:var(--ink-soft); font-style:italic; }
+
+  .tag-row{ display:flex; flex-wrap:wrap; gap:6px; margin-top:14px; }
+  .tag{ font-size:11px; font-weight:600; padding:3px 9px; border:1px solid var(--line); color:var(--ink-soft); }
+
+  footer{ max-width:1080px; margin:0 auto; padding:30px 24px 60px; color:var(--ink-soft); font-size:12.5px; border-top:1px solid var(--line); margin-top:40px;}
+</style>
 </head>
-<body>
+<body data-course="emi">
 
-  <!-- 毛玻璃頂部導覽列 -->
-  <header class="navbar">
-    <div class="nav-container">
-      <div class="brand" id="brandText">Safety Education</div>
-      <nav class="nav-links">
-        <a href="#materials" id="navMaterials">Materials</a>
-        <a href="#grading" id="navGrading">Grading</a>
-        <a href="#showcase" id="navShowcase">Showcase</a>
-        <a href="#submit" class="nav-btn" id="navSubmit">Submit</a>
-      </nav>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="mark"></div>
+      <div class="brand-text">安全教育<small id="brandSub">Safety Education — Course LMS</small></div>
     </div>
-  </header>
+    <nav class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="overview">總覽 Overview</button>
+      <button role="tab" aria-selected="false" data-tab="modules">每週單元 Weekly Modules</button>
+      <button role="tab" aria-selected="false" data-tab="refs">參考資源總表 All References</button>
+    </nav>
+    <div class="course-switch" role="tablist" aria-label="course">
+      <button aria-pressed="true" data-course="emi">EMI 大學部</button>
+      <button aria-pressed="false" data-course="grad">碩博班研討</button>
+    </div>
+  </div>
+</div>
 
-  <main class="container">
-    
-    <!-- 課程切換器 -->
-    <div class="course-switcher">
-      <button data-course="emi" class="active">Safety Education (EMI)</button>
-      <button data-course="grad">安全教育專題研究</button>
+<div class="shell">
+
+  <!-- ================= OVERVIEW ================= -->
+  <section class="panel active" id="panel-overview">
+    <div class="lede">
+      <p class="kicker" id="ov-kicker">EMI · English-Medium Instruction · 2 credits</p>
+      <h1 id="ov-title">Safety Education</h1>
+      <p id="ov-desc"></p>
     </div>
 
-    <!-- 課程簡介 Hero Section -->
-    <section class="hero">
-      <h1 id="pageTitle">Safety Education</h1>
-      <p class="subtitle" id="pageLead"></p>
-      <div class="tags-container" id="sdgsList"></div>
-    </section>
+    <div class="stat-row" id="ov-stats"></div>
 
-    <!-- 課程目標與評分 -->
-    <section class="info-grid">
-      <div class="info-card">
-        <h2 id="objectivesHeading">Course Objectives</h2>
-        <ul class="clean-list" id="objectivesList"></ul>
+    <div class="two-col">
+      <div>
+        <div class="block">
+          <h2><span class="idx">01</span> <span id="lbl-intro">Course Introduction</span></h2>
+          <div class="intro-text" id="ov-intro-en"></div>
+          <div class="intro-text zh" id="ov-intro-zh"></div>
+        </div>
+
+        <div class="block">
+          <h2><span class="idx">02</span> <span id="lbl-obj">Course Objectives</span></h2>
+          <table class="obj-table">
+            <thead><tr><th id="th-obj" style="width:60%">Objective</th><th id="th-comp">Corresponding Core Competency</th></tr></thead>
+            <tbody id="ov-objectives"></tbody>
+          </table>
+        </div>
       </div>
-      <div class="info-card">
-        <h2 id="gradingHeading">Grading</h2>
-        <div class="grading-wrapper" id="gradingPanel"></div>
+
+      <div>
+        <div class="block">
+          <h2><span class="idx">03</span> <span id="lbl-assess">Assessment</span></h2>
+          <ul class="assess-list" id="ov-assess"></ul>
+        </div>
+        <div class="block">
+          <h2><span class="idx">04</span> <span id="lbl-sdg">SDGs Alignment</span></h2>
+          <div class="pill-row" id="ov-sdgs"></div>
+        </div>
+        <div class="block">
+          <h2><span class="idx">05</span> <span id="lbl-ai">AI Use Policy</span></h2>
+          <div class="ai-note" id="ov-ai"></div>
+        </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- 每週教材 -->
-    <section class="materials-section" id="materials">
-      <div class="section-header">
-        <h2 id="materialsHeading">Weekly Materials</h2>
-        <p class="section-desc" id="aiPolicyText"></p>
+  <!-- ================= MODULES ================= -->
+  <section class="panel" id="panel-modules">
+    <div class="lede">
+      <p class="kicker">16 週教學進度</p>
+      <h1 id="mod-title">Weekly Modules</h1>
+      <p>每一週包含教學內容、對應的資源網站與學習單／實作活動。點選展開。</p>
+    </div>
+    <div class="modules-layout">
+      <nav class="week-nav"><ol id="weekNavList"></ol></nav>
+      <div id="moduleList"></div>
+    </div>
+  </section>
+
+  <!-- ================= ALL REFS ================= -->
+  <section class="panel" id="panel-refs">
+    <div class="lede">
+      <p class="kicker">彙整版</p>
+      <h1>Reference &amp; Resource Master List</h1>
+      <p>依課程綱要「參考書目」欄位彙整，另加每週資源／學習單所引用之外部連結，供教師與助教直接複製貼入教務系統或課程網站使用。</p>
+    </div>
+    <table class="obj-table" id="refTable">
+      <thead><tr><th style="width:24%">主題 / Topic</th><th style="width:38%">資源網站 Resource</th><th>學習單／活動 Worksheet / Activity</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+</div>
+
+<footer>
+  Course-specific LMS site for 國立臺灣師範大學健康促進與衛生教育學系「安全教育」（EMI）與「安全教育專題研究」（碩博班）。內容整理自 115-1 課程綱要文件；外部資源連結之正確性請於學期初逐一複查，部分連結內容可能隨來源網站更新而變動。
+</footer>
+
+<script>
+/* ============================================================
+   DATA — sourced from the uploaded 115-1 course syllabus docs.
+   Where the syllabus / prior course site did not specify a
+   dedicated worksheet, `worksheet.type` is "note" (an honest
+   placeholder / suggested activity) rather than a fabricated link.
+   ============================================================ */
+
+const COURSES = {
+emi: {
+  kicker: "EMI · English-Medium Instruction · 2 credits",
+  title: "Safety Education",
+  descEn: "16-week undergraduate course covering the major domains of unintentional-injury prevention, taught through an AI-assisted \u201cvibe coding\u201d game-design project.",
+  introEn: "This course introduces the theoretical foundations of safety education and covers a broad range of injury-prevention domains \u2014 traffic safety, water safety, burns/scalds and first aid, fall prevention, fire safety, disaster preparedness, food & drug safety, workplace safety, mass-gathering/crowd safety, and cyber safety \u2014 and trains students to design developmentally and contextually appropriate educational interventions. Students collaborate with generative AI tools and a \u201cvibe coding\u201d workflow to design and build an interactive safety-education game.",
+  introZh: "本課程以健康促進與衛生教育之專業知識為基礎，介紹安全教育的核心理論與多元主題，並訓練學生以AI協作及「vibe coding」方式開發互動式安全教育教學遊戲。",
+  stats: [["16","週次 Weeks"],["2","學分 Credits"],["40%","AI 遊戲專案 Game Project"],["4","SDGs 對應"]],
+  objectives: [
+    ["Explain the importance and scope of safety education.","Apply professional knowledge of health science and education"],
+    ["Explain the five major content areas of safety education (traffic, water, falls, disaster preparedness, food & drug safety).","Apply professional knowledge of health science and education"],
+    ["Apply structured tools (Haddon Matrix, HVA) to assess the risks and needs of a specific audience or setting.","Assess individual- and setting-level health promotion / education needs"],
+    ["Design and deliver instructional strategies tailored to a given audience and setting.","Provide health education, counseling, and management for individuals and settings"],
+    ["Collaborate with generative AI tools to design, prototype (\u201cvibe code\u201d), implement, and evaluate an interactive safety-education game.","Plan, implement, and evaluate health promotion and education programs"],
+    ["Demonstrate responsible, ethical use of AI tools, including verification and attribution of AI-assisted work.","Understand and practice professional ethics and social responsibility"]
+  ],
+  assessment: [["Attendance & Participation","10%"],["Weekly Quizzes / Reflections","15%"],["Midterm Case Analysis (Haddon Matrix / HVA)","15%"],["AI-Assisted Game Project (design doc, prototype, AI-use log)","40%"],["Final Demonstration & Peer Review","20%"]],
+  sdgs: ["SDG 3 · Good Health & Well-Being","SDG 4 · Quality Education","SDG 8 · Decent Work & Economic Growth","SDG 11 · Sustainable Cities & Communities","(optional) SDG 9 · Industry, Innovation & Infrastructure"],
+  ai: "<b>Extensively Encouraged.</b> Weeks 4 and 15 are dedicated AI-assisted \u201cvibe coding\u201d studio sessions. Students submit an AI-use log with their final project and must verify AI-generated safety content and game code before submission.",
+  labels: {intro:"Course Introduction", obj:"Course Objectives", assess:"Assessment", sdg:"SDGs Alignment", ai:"AI Use Policy", thObj:"Objective", thComp:"Corresponding Core Competency"},
+  modules: [
+    { week:1, topic:"Course Introduction & AI-Integrated Project Overview",
+      content:"Course structure, expectations, and grading overview; the scope and burden of unintentional injury as a public-health issue; overview of the AI-assisted interactive game project and the vibe-coding workflow used throughout the term.",
+      resources: [], worksheet:{type:"note", text:"No external worksheet this week \u2014 in-class syllabus walkthrough and project-overview discussion."}, tags:["Intro"] },
+    { week:2, topic:"Risk Management and Assessment",
+      content:"Hazard Vulnerability Analysis (HVA) and the Haddon Matrix (host\u2013agent\u2013environment \u00d7 pre-event/event/post-event phases); applying both tools to a real-world safety case.",
+      resources: [
+        {label:"Haddon W Jr. (1968). The changing approach to the epidemiology, prevention, and amelioration of trauma.", note:"Am J Public Health Nations Health 58(8):1431\u20131438 \u2014 the original Haddon Matrix paper, from the syllabus reference list."},
+        {label:"MOE Taiwan \u2014 K-12 Curriculum & Instruction Resource Platform (CIRN), Safety Education", url:"https://cirn.moe.edu.tw"}
+      ],
+      worksheet:{type:"link", url:"https://www.npaihb.org/images/epicenter_docs/injuryprevention/HaddonMatrixBasics.pdf", text:"Haddon Matrix Basics worksheet (NW Portland Area Indian Health Board) \u2014 blank 3\u00d73 matrix for applying host / agent / environment factors across pre-event, event, and post-event phases to a chosen case.", cite:"Cite the case, don't reproduce the PDF text \u2014 it's a fillable worksheet, have students complete their own."},
+      tags:["Midterm case analysis"] },
+    { week:3, topic:"Health Education Methods & Instructional Design",
+      content:"Theory-informed health education approaches (e.g. Health Belief Model); principles of instructional design; adapting content and delivery for different developmental stages and settings.",
+      resources: [{label:"\u674e\u862d (2010).\u3010\u5065\u5eb7\u884c\u70ba\u8207\u5065\u5eb7\u6559\u80b2\u3011\u3002\u5de8\u6d41\u5716\u66f8\u516c\u53f8\u3002", note:"Core textbook reading \u2014 no companion website; syllabus reference list."}],
+      worksheet:{type:"note", text:"In-class instructional-design activity: adapt one HBM-based lesson for two different age groups (design brief, not a fixed worksheet)."}, tags:[] },
+    { week:4, topic:"AI-Assisted Design Studio I: Introduction to Vibe Coding",
+      content:"Hands-on workshop introducing generative AI coding tools and a vibe-coding workflow; project teams formed; safety topic and target audience selected for the term project.",
+      resources: [], worksheet:{type:"note", text:"Studio deliverable: team charter + chosen safety topic/audience (produced in-session, not a pre-made sheet)."}, tags:["Studio session"] },
+    { week:5, topic:"Traffic Safety",
+      content:"Pedestrian, cyclist, and passenger risk factors across the life course; school-zone and community-level interventions; designing traffic-safety messaging for different audiences.",
+      resources: [
+        {label:"NHTSA \u2014 Bicycle & Road Safety", url:"https://www.nhtsa.gov/learn-bike-safely"},
+        {label:"Kidsafe NSW \u2014 Road Safety information sheets", url:"https://www.kidsafensw.org/resources/information-sheets/road-safety/"}
+      ],
+      worksheet:{type:"link", url:"https://www.safekids.org/safetytips/field_type/activities-kids", text:"Safe Kids Worldwide \u2014 \u201cActivities for Kids\u201d hub, includes a printable helmet-matching worksheet and walk-to-school materials."}, tags:[] },
+    { week:6, topic:"Water Safety",
+      content:"Drowning risk factors and prevention (supervision, barriers, swim competency); open-water versus pool/recreational-water hazards; water-safety instructional strategies.",
+      resources: [{label:"Better Health Channel (VIC Gov, Australia) \u2014 Water Safety for Children", url:"https://www.betterhealth.vic.gov.au/health/healthyliving/water-safety-for-children"}],
+      worksheet:{type:"note", text:"No ready-made worksheet identified for this topic yet \u2014 recommend building a short risk-audit checklist from the Better Health Channel page, in the style of Kidsafe's home safety checklists."}, tags:[] },
+    { week:7, topic:"Burns, Scalds & First Aid / Basic Life Support",
+      content:"Common causes and prevention of thermal, chemical, and electrical burns/scalds across home, school, and community settings; core first-aid principles and BLS skills (wound and burn care, choking response, CPR/AED overview).",
+      resources: [{label:"Kidsafe NSW \u2014 Burn Injury Prevention information sheet", url:"https://www.kidsafensw.org/resources/information-sheets/home-and-community-safety/"}],
+      worksheet:{type:"link", url:"https://www.globalfirstaidcentre.org/resource/online-game-emojis-and-first-aid/", text:"IFRC Global First Aid Reference Centre \u2014 \u201cEmojis and First Aid\u201d interactive game; doubles as the hands-on activity for this week."}, tags:["Response-side complement to prevention"] },
+    { week:8, topic:"Fall Prevention",
+      content:"Fall risk factors across the life course (playground and school equipment, stairs, older-adult falls); environmental and behavioral prevention strategies.",
+      resources: [
+        {label:"Children's Safety Network \u2014 Falls", url:"https://www.childrenssafetynetwork.org/child-safety-topics/falls"},
+        {label:"Kidsafe NSW \u2014 Preventing Falls in the Home information sheet", url:"https://www.kidsafensw.org/resources/information-sheets/home-and-community-safety/"}
+      ],
+      worksheet:{type:"note", text:"No dedicated printable worksheet found \u2014 suggest an environmental fall-risk audit checklist adapted from the Kidsafe information sheet above."}, tags:[] },
+    { week:9, topic:"Fire Safety & Evacuation",
+      content:"Common fire-cause awareness (electrical, cooking-related, wildland\u2013urban interface); evacuation planning and drills; fire-extinguisher use and escape-route design for schools and homes.",
+      resources: [{label:"National Fire Agency, Taiwan (\u5167\u653f\u90e8\u6d88\u9632\u7f72) \u2014 \u6d88\u9632\u9632\u707d\u9928", url:"https://www.tfdp.com.tw/cht/index.php?code=list&ids=25"}],
+      worksheet:{type:"link", url:"https://www.tfdp.com.tw/cht/index.php?code=list&ids=25", text:"\u6d88\u9632\u9632\u707d\u9928\u4e92\u52d5\u904a\u6232\uff08\u5bb6\u5c45\u9694\u96e2\u7269\u6aa2\u6838\u3001\u9003\u751f\u8def\u7dda\u898f\u5283\u3001\u706b\u707d\u758a\u96e2\uff09\u2014 doubles as the practical activity for this week."}, tags:[] },
+    { week:10, topic:"Disaster Preparedness",
+      content:"Earthquake, typhoon, and flood preparedness; household and school emergency plans; introduction to community-level disaster-response coordination.",
+      resources: [{label:"Ready.gov (US FEMA) \u2014 Prepare with Pedro", url:"https://www.ready.gov/kids/prepare-pedro"}],
+      worksheet:{type:"link", url:"https://www.ready.gov/kids/prepare-pedro", text:"Prepare with Pedro site includes printable family-emergency-plan and activity pages aimed at younger audiences \u2014 usable directly or as a template for a Taiwan-specific version."}, tags:[] },
+    { week:11, topic:"Food & Drug Safety",
+      content:"Foodborne-illness prevention; safe medication storage/use and poisoning prevention for children and adolescents; reading food and drug labels.",
+      resources: [
+        {label:"US FDA \u2014 Food Safety Education Month", url:"https://www.fda.gov/food/consumers/food-safety-education-month"},
+        {label:"Positive Choices (Australia) \u2014 School-based drug & alcohol prevention: what works?", url:"https://positivechoices.org.au/teachers/drug-prevention-what-works"}
+      ],
+      worksheet:{type:"note", text:"No dedicated worksheet identified \u2014 suggest a label-reading exercise using real food/medication packaging brought to class."}, tags:[] },
+    { week:12, topic:"Workplace Safety",
+      content:"Common occupational hazards for young and first-time workers (part-time jobs, internships); workers' rights, hazard reporting, and employer responsibilities; ergonomics in school-to-work transition programs.",
+      resources: [{label:"Occupational Safety and Health Administration, Taiwan (\u52de\u52d5\u90e8\u8077\u5b89\u7f72) \u2014 \u8077\u696d\u5b89\u5168\u885b\u751f\u6578\u4f4d\u5b78\u7fd2\u5e73\u53f0 (iSafe)", url:"https://isafeel.osha.gov.tw/mooc/index.php"}],
+      worksheet:{type:"link", url:"https://isafeel.osha.gov.tw/mooc/index.php", text:"iSafe platform includes dedicated modules and self-check quizzes for workers aged 15\u201318 \u2014 use directly as the week's practical activity."}, tags:[] },
+    { week:13, topic:"Mass-Gathering & Crowd Safety",
+      content:"Crowd-density and crowd-crush risk factors, with case studies from large public events; event risk assessment and crowd-management strategies; the role of health educators in public-event safety planning.",
+      resources: [{label:"National Fire Agency, Taiwan \u2014 Guidelines for Safety Management of Large-Scale Public Gatherings (\u5927\u578b\u7fa4\u805a\u6d3b\u52d5\u5b89\u5168\u7ba1\u7406\u8981\u9ede)", url:"https://www.nfa.gov.tw/cht/index.php?code=list&ids=905"}],
+      worksheet:{type:"note", text:"No off-the-shelf worksheet \u2014 reuse the Week 2 Haddon Matrix template, applied to a documented crowd-crush case, as the analysis activity."}, tags:[] },
+    { week:14, topic:"Cyber Safety & Problematic Internet Use",
+      content:"Online risks (cyberbullying, predatory contact, misinformation); recognizing and preventing problematic/excessive internet use; digital-literacy strategies for different age groups.",
+      resources: [{label:"Google \u2014 Be Internet Awesome", url:"https://beinternetawesome.withgoogle.com/en_us/interland/"}],
+      worksheet:{type:"link", url:"https://beinternetawesome.withgoogle.com/en_us/interland/", text:"Interland \u2014 the interactive game itself serves as the week's hands-on activity."}, tags:[] },
+    { week:15, topic:"AI-Assisted Design Studio II: Game Development & Playtesting",
+      content:"Team studio time integrating course content into the game; AI-assisted coding/debugging; peer playtesting and iterative feedback.",
+      resources: [], worksheet:{type:"note", text:"Peer-playtesting feedback form (produced in-session by the instructor/TA, tailored to that term's games)."}, tags:["Studio session"] },
+    { week:16, topic:"Final Demonstration & Peer Review",
+      content:"Team presentations of AI-assisted interactive safety-education games; peer and instructor evaluation against instructional-design criteria.",
+      resources: [], worksheet:{type:"note", text:"Evaluation rubric derived from the Assessment section (design doc / prototype / AI-use log / demonstration criteria)."}, tags:["Final demonstration","20%"] }
+  ]
+},
+
+grad: {
+  kicker: "\u78a9\u58eb\u73ed\u3001\u535a\u58eb\u73ed \u00b7 \u4e2d\u6587\u6388\u8ab2 \u00b7 \u5c08\u984c\u7814\u7a76",
+  title: "\u5b89\u5168\u6559\u80b2\u5c08\u984c\u7814\u7a76",
+  descEn: "",
+  introEn: "",
+  introZh: "\u672c\u8ab2\u7a0b\u70ba\u5065\u5eb7\u4fc3\u9032\u8207\u885b\u751f\u6559\u80b2\u5b78\u7cfb\u78a9\u58eb\u73ed\u3001\u535a\u58eb\u73ed\u4e4b\u5c08\u984c\u7814\u7a76\u8ab2\u7a0b\uff0c\u805a\u7126\u5b89\u5168\u6559\u80b2\u4e4b\u7406\u8ad6\u57fa\u790e\u8207\u7814\u7a76\u65b9\u6cd5\u8a13\u7df4\uff0c\u8a13\u7df4\u7814\u7a76\u751f\u9032\u884c\u98a8\u96aa\u8a55\u4f30\u3001\u6587\u737b\u56de\u9867\u8207\u6279\u5224\u3001\u5be6\u8b49\u57fa\u790e\u4ecb\u5165\u65b9\u6848\u8a2d\u8a08\uff0c\u4ee5\u53ca\u7814\u7a76\u8a08\u756b\u4e4b\u64ec\u5b9a\u8207\u8a55\u6790\u3002\u9700\u904b\u7528\u751f\u6210\u5f0fAI\u5de5\u5177\u8f14\u52a9\u6587\u737b\u641c\u5c0b\u3001\u6458\u8981\u8207\u5be6\u8b49\u6574\u5408\uff0c\u4e26\u5f37\u8abfAI\u4f7f\u7528\u4e4b\u67e5\u6838\u3001\u6279\u5224\u8207\u502b\u7406\u63ed\u9732\u3002",
+  stats: [["16","\u9031\u6b21 Weeks"],["70%","\u4ecb\u5165\u8a08\u756b\u8207\u5c55\u793a"],["\u90313\u201312","\u6587\u737b\u5c0e\u8b80"],["4","SDGs \u5c0d\u61c9"]],
+  objectives: [
+    ["\u4e86\u89e3\u5b89\u5168\u6559\u80b2\u7684\u76ee\u6a19\u8207\u5167\u6db5","\u904b\u7528\u5065\u5eb7\u79d1\u5b78\u8207\u6559\u80b2\u5b78\u5c08\u696d\u77e5\u8b58\u7684\u80fd\u529b"],
+    ["\u80fd\u5920\u9032\u884c\u98a8\u96aa\u8a55\u4f30\u8207\u64ec\u8a02\u7ba1\u7406\u7b56\u7565","\u8a55\u4f30\u500b\u4eba\u8207\u5834\u57df\u5065\u5eb7\u4fc3\u9032\u8207\u885b\u751f\u6559\u80b2\u9700\u6c42"],
+    ["\u80fd\u5920\u8a2d\u8a08\u5b89\u5168\u6559\u80b2\u4e3b\u984c\u6559\u5b78\u6d3b\u52d5","\u898f\u5283\u3001\u57f7\u884c\u53ca\u8a55\u50f9\u5065\u5eb7\u4fc3\u9032\u8207\u885b\u751f\u6559\u80b2\u8a08\u756b"],
+    ["\u80fd\u5920\u5206\u6790\u4e0d\u540c\u5834\u57df\u7684\u5b89\u5168\u8b70\u984c","\u63d0\u4f9b\u500b\u4eba\u8207\u5834\u57df\u885b\u751f\u6559\u80b2\u3001\u5065\u5eb7\u8ac7\u5546\u8207\u5065\u5eb7\u7ba1\u7406"],
+    ["\u80fd\u5c0d\u5b89\u5168\u6559\u80b2\u8b70\u984c\u9032\u884c\u8a08\u756b\u64ec\u5b9a","\u7ba1\u7406\u500b\u4eba\u8207\u5834\u57df\u7684\u5065\u5eb7\u4fc3\u9032\u8207\u885b\u751f\u6559\u80b2\u8a08\u756b"],
+    ["\u80fd\u5920\u8a55\u6790\u5b89\u5168\u6559\u80b2\u7814\u7a76\u6587\u737b\u8207\u7814\u7a76\u8a2d\u8a08","\uff08\u78a9\uff09\u984d\u5916\u5f37\u5316\u7814\u7a76\u7d20\u990a\uff1b\uff08\u535a\uff09\u5f9e\u4e8b\u5c08\u696d\u7814\u7a76\u3001\u767c\u63a3\u5206\u6790\u8207\u8655\u7406\u5065\u5eb7\u554f\u984c"],
+    ["\uff08\u65b0\uff09\u80fd\u5920\u9069\u5207\u4e14\u7b26\u5408\u502b\u7406\u5730\u904b\u7528\u751f\u6210\u5f0fAI\u5de5\u5177\uff0c\u8f14\u52a9\u6587\u737b\u56de\u9867\u3001\u7814\u7a76\u8a2d\u8a08\u8207\u885b\u6559\u4ecb\u5165\u65b9\u6848\u767c\u5c55","\u80fd\u7406\u89e3\u4e26\u5be6\u8e10\u8eab\u70ba\u5065\u5eb7\u4fc3\u9032\u8207\u885b\u751f\u6559\u80b2\u8005\u7684\u5c08\u696d\u502b\u7406\u8207\u793e\u6703\u8cac\u4efb"],
+    ["\uff08\u65b0\uff09\u80fd\u6709\u6548\u6eb9\u901a\u5b89\u5168\u6559\u80b2\u76f8\u95dc\u5065\u5eb7\u98a8\u96aa\uff0c\u4e26\u5021\u8b70\uff08\u78a9\uff09\uff0f\u9818\u5c0e\uff08\u535a\uff09\u5b89\u5168\u4fc3\u9032\u653f\u7b56\u6216\u65b9\u6848","\u6709\u6548\u6eb9\u901a\u5065\u5eb7\u98a8\u96aa\u4e26\u5021\u8b70\u8207\u884c\u92b7\uff0f\u9818\u5c0e\u5065\u5eb7\u4fc3\u9032\u8a08\u756b"]
+  ],
+  assessment: [["\u8ab2\u5802\u5c0e\u8b80","20%"],["\u5b89\u5168\u6559\u80b2\u4ecb\u5165\u8a08\u756b\u8207\u6f14\u793a","70%"],["\u5e73\u6642\u6210\u7e3e\uff08\u51fa\u5e2d\u8207\u53c3\u8207\u8a0e\u8ad6\uff09","10%"]],
+  sdgs: ["SDG 3 \u00b7 \u5065\u5eb7\u8207\u798f\u7949","SDG 4 \u00b7 \u512a\u8cea\u6559\u80b2","SDG 8 \u00b7 \u5408\u9069\u5de5\u4f5c\u8207\u7d93\u6fdf\u6210\u9577","SDG 11 \u00b7 \u6c38\u7e8c\u57ce\u9109","\uff08\u53ef\u9078\uff09SDG 9 \u00b7 \u7522\u696d\u5275\u65b0\u8207\u57fa\u790e\u8a2d\u65bd"],
+  ai: "<b>\u5168\u9762\u9f13\u52f5\u4f7f\u7528\u3002</b>\u6587\u737b\u5c0e\u8b80\u968e\u6bb5\uff08\u90313\u201312\uff09\u8a13\u7df4\u5b78\u751f\u904b\u7528AI\u8f14\u52a9\u6587\u737b\u641c\u5c0b\u8207\u6458\u8981\uff0c\u4e26\u67e5\u6838\u3001\u8fa8\u8b58AI\u5e7b\u89ba\uff1b\u671f\u672b\u4ecb\u5165\u8a08\u756b\u968e\u6bb5\uff08\u903113\u201316\uff09\u9700\u65bc\u5831\u544a\u4e2d\u63ed\u9732AI\u61c9\u7528\u7bc4\u570d\u8207\u67e5\u6838\u904e\u7a0b\u3002",
+  labels: {intro:"\u8ab2\u7a0b\u7c21\u4ecb", obj:"\u8ab2\u7a0b\u76ee\u6a19\u8207\u6838\u5fc3\u80fd\u529b", assess:"\u8a55\u91cf\u65b9\u5f0f", sdg:"SDGs \u5c0d\u61c9", ai:"AI \u4f7f\u7528\u898f\u7bc4", thObj:"\u8ab2\u7a0b\u76ee\u6a19", thComp:"\u5c0d\u61c9\u6838\u5fc3\u80fd\u529b"},
+  modules: [
+    { week:1, date:"9/2", topic:"\u8ab2\u7a0b\u4ecb\u7d39\u3001\u4ecb\u5165\u8a08\u756b\u64b0\u5beb",
+      content:"\u8aaa\u660e\u8ab2\u7a0bAI\u4f7f\u7528\u898f\u7bc4\uff08\u9f13\u52f5\u4f7f\u7528\u3001\u9700\u63ed\u9732\u8207\u67e5\u6838\uff0c\u542b\u6821\u5167\u5e73\u53f0\u7b49\u8cc7\u6e90\uff0c\u5e2b\u751f\u5171\u540c\u6478\u7d22\uff09\uff1b\u6982\u89bd AI \u8f14\u52a9\u6587\u737b\u8496\u96c6\u8207\u5beb\u4f5c\u5de5\u5177\u3002",
+      resources: [{label:"NTNU LeapSpace（校內AI輔助研究平台）", note:"由系所/教務單位提供之校內平台，尚待熟悉操作方式（依 [[ntnu-safety-education-grad-seminar]] 課程規劃）。"}],
+      worksheet:{type:"note", text:"課堂共同摸索：AI輔助文獻蒐集與寫作工具操作練習（無固定學習單）。"}, tags:[] },
+    { week:2, date:"9/9", topic:"風險管理概論與行為科學理論",
+      content:"運用AI協助將行為科學理論（HBM、TTM等）套用至案例情境，練習AI輔助概念圖繪製。",
+      resources: [{label:"李蘭 (2010).《健康行為與健康教育》。巨流圖書公司。", note:"課程參考書目"}],
+      worksheet:{type:"link", url:"https://www.npaihb.org/images/epicenter_docs/injuryprevention/HaddonMatrixBasics.pdf", text:"Haddon Matrix 空白矩陣（可搭配 HBM/TTM 概念圖練習使用，同 EMI 課程週2）。"}, tags:[] },
+    { week:3, date:"9/16", topic:"交通安全教育研討",
+      content:"以AI輔助工具蒐集近5年相關文獻，導讀者須標註AI協助範圍並逐一查核正確性。",
+      resources: [
+        {label:"NHTSA — Bicycle & Road Safety", url:"https://www.nhtsa.gov/learn-bike-safely"},
+        {label:"教育部 CIRN 課程與教學資源整合平臺", url:"https://cirn.moe.edu.tw/Facet/group/index.aspx?HtmlName=InnovativeIndex"}
+      ],
+      worksheet:{type:"note", text:"文獻導讀單：主題文獻蒐集表＋AI協助範圍揭露欄位（由導讀學生依當週文獻自行填製，無固定模板）。"}, tags:["文獻導讀 20%"] },
+    { week:4, date:"9/23", topic:"水域安全教育研討",
+      content:"嘗試以生成式AI草擬文獻摘要初稿，再由學生逐句查核、修正並補充原文依據。",
+      resources: [{label:"Better Health Channel — Water Safety for Children", url:"https://www.betterhealth.vic.gov.au/health/healthyliving/water-safety-for-children"}],
+      worksheet:{type:"note", text:"AI摘要初稿查核練習（同上，無固定模板）。"}, tags:["文獻導讀 20%"] },
+    { week:5, date:"9/30", topic:"燒燙傷與急救／基本救命術研討",
+      content:"研討AI輔助急救訓練工具（情境模擬、對話式指導）之應用與限制，並延續AI輔助文獻回顧。",
+      resources: [{label:"IFRC Global First Aid Reference Centre — Emojis and First Aid", url:"https://www.globalfirstaidcentre.org/resource/online-game-emojis-and-first-aid/"}],
+      worksheet:{type:"note", text:"無固定學習單 — 研討AI對話式急救指導工具的應用限制。"}, tags:["文獻導讀 20%"] },
+    { week:6, date:"10/7", topic:"防墜安全教育研討",
+      content:"練習以AI輔助PICO架構提問進行文獻篩選，並訓練辨識AI幻覺、回溯原始文獻之能力。",
+      resources: [{label:"Children's Safety Network — Falls", url:"https://www.childrenssafetynetwork.org/child-safety-topics/falls"}],
+      worksheet:{type:"note", text:"PICO文獻篩選練習表（課堂共同建立，無固定模板）。"}, tags:["文獻導讀 20%"] },
+    { week:7, date:"10/14", topic:"火災逃生安全教育研討",
+      content:"研討AI於火災預警、逃生路徑模擬之應用文獻，延續AI輔助文獻回顧與查核練習。",
+      resources: [{label:"內政部消防署 — 消防防災館", url:"https://www.tfdp.com.tw/cht/index.php?code=list&ids=25"}],
+      worksheet:{type:"note", text:"無固定學習單 — 延續文獻回顧與查核練習。"}, tags:["文獻導讀 20%"] },
+    { week:8, date:"10/21", topic:"防災安全教育研討",
+      content:"研討AI於災害風險評估、預警系統與資源調度之應用案例。",
+      resources: [{label:"Ready.gov — Prepare with Pedro", url:"https://www.ready.gov/kids/prepare-pedro"}],
+      worksheet:{type:"note", text:"無固定學習單 — 案例研討為主。"}, tags:["文獻導讀 20%"] },
+    { week:9, date:"10/28", topic:"食品藥物安全教育研討",
+      content:"延續AI輔助文獻回顧，並研討AI於食品／藥物安全衛教素材開發（如個人化衛教內容）之應用。",
+      resources: [
+        {label:"US FDA — Food Safety Education Month", url:"https://www.fda.gov/food/consumers/food-safety-education-month"},
+        {label:"Positive Choices — School-based drug & alcohol prevention", url:"https://positivechoices.org.au/teachers/drug-prevention-what-works"}
+      ],
+      worksheet:{type:"note", text:"無固定學習單 — 個人化衛教素材開發案例研討。"}, tags:["文獻導讀 20%"] },
+    { week:10, date:"11/4", topic:"職業安全教育研討",
+      content:"研討AI於職場風險辨識、穿戴式裝置監測之應用與相關倫理議題。",
+      resources: [{label:"勞動部職業安全衛生署 — 職業安全衛生數位學習平台 (iSafe)", url:"https://isafeel.osha.gov.tw/mooc/index.php"}],
+      worksheet:{type:"note", text:"無固定學習單 — 倫理議題研討為主。"}, tags:["文獻導讀 20%"] },
+    { week:11, date:"11/11", topic:"資訊安全教育研討",
+      content:"深入探討AI相關資安風險（深偽技術、AI生成不實訊息、提示注入攻擊），並反思AI使用倫理。",
+      resources: [{label:"Google — Be Internet Awesome / Interland", url:"https://beinternetawesome.withgoogle.com/en_us/interland/"}],
+      worksheet:{type:"note", text:"無固定學習單 — AI倫理反思討論為主，syllabus 未提供深偽／提示注入專題之現成資源連結。"}, tags:["文獻導讀 20%"] },
+    { week:12, date:"11/18", topic:"社區安全教育實務（含大型群聚活動／人潮安全案例）",
+      content:"運用AI輔助分析社區與群聚活動安全需求資料，並協助草擬安全需求問卷或風險評估初稿。",
+      resources: [{label:"內政部消防署 — 大型群聚活動安全管理要點", url:"https://www.nfa.gov.tw/cht/index.php?code=list&ids=905"}],
+      worksheet:{type:"note", text:"社區安全需求問卷初稿（由學生以AI輔助草擬，無固定模板）。"}, tags:["文獻導讀 20%"] },
+    { week:13, date:"11/25", topic:"安全教育介入計畫報告",
+      content:"以AI輔助整理實證基礎（evidence synthesis），佐證介入方案設計依據；報告須說明AI應用範圍與查核過程。",
+      resources: [], worksheet:{type:"note", text:"介入計畫書格式＋AI應用揭露欄位（依評量標準製作，無固定模板）。"}, tags:["介入計畫與演示 70%"] },
+    { week:14, date:"12/2", topic:"簡單試教／介入展示 I",
+      content:"完成部分學生試教或介入展示，可運用AI協作／vibe coding製作教材或互動遊戲原型（不強制）。",
+      resources: [], worksheet:{type:"note", text:"試教評分表（呼應課程目標8之溝通／倡議表現）。"}, tags:["介入計畫與演示 70%"] },
+    { week:15, date:"12/9", topic:"簡單試教／介入展示 II",
+      content:"完成剩餘學生試教或介入展示，同上。",
+      resources: [], worksheet:{type:"note", text:"同週14。"}, tags:["介入計畫與演示 70%"] },
+    { week:16, date:"12/16", topic:"綜合演示、同儕互評與課程總結",
+      content:"綜合反思AI輔助研究與介入設計歷程之心得與限制。",
+      resources: [], worksheet:{type:"note", text:"同儕互評表＋AI輔助歷程反思單（依評量標準製作）。"}, tags:["介入計畫與演示 70%"] }
+  ]
+}
+};
+
+/* ---------------- render logic ---------------- */
+let state = { course: "emi", tab: "overview" };
+
+function esc(s){ const d=document.createElement("div"); d.textContent = s==null?"":s; return d.innerHTML; }
+
+function renderOverview(){
+  const c = COURSES[state.course];
+  document.getElementById("ov-kicker").textContent = c.kicker;
+  document.getElementById("ov-title").textContent = c.title;
+  document.getElementById("ov-desc").textContent = c.descEn || "";
+  document.getElementById("ov-desc").style.display = c.descEn ? "block" : "none";
+
+  document.getElementById("ov-stats").innerHTML = c.stats.map(s=>`<div class="stat"><b>${esc(s[0])}</b><span>${esc(s[1])}</span></div>`).join("");
+
+  document.getElementById("ov-intro-en").style.display = c.introEn ? "block" : "none";
+  document.getElementById("ov-intro-en").textContent = c.introEn || "";
+  document.getElementById("ov-intro-zh").textContent = c.introZh || "";
+
+  document.getElementById("lbl-intro").textContent = c.labels.intro;
+  document.getElementById("lbl-obj").textContent = c.labels.obj;
+  document.getElementById("lbl-assess").textContent = c.labels.assess;
+  document.getElementById("lbl-sdg").textContent = c.labels.sdg;
+  document.getElementById("lbl-ai").textContent = c.labels.ai;
+  document.getElementById("th-obj").textContent = c.labels.thObj;
+  document.getElementById("th-comp").textContent = c.labels.thComp;
+
+  document.getElementById("ov-objectives").innerHTML = c.objectives.map(o=>`<tr><td>${esc(o[0])}</td><td>${esc(o[1])}</td></tr>`).join("");
+  document.getElementById("ov-assess").innerHTML = c.assessment.map(a=>`<li><span>${esc(a[0])}</span><b>${esc(a[1])}</b></li>`).join("");
+  document.getElementById("ov-sdgs").innerHTML = c.sdgs.map(s=>`<span class="pill">${esc(s)}</span>`).join("");
+  document.getElementById("ov-ai").innerHTML = c.ai;
+}
+
+function resourceHtml(r){
+  if (r.url) return `<li><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.label)}</a>${r.note?`<span class="note">${esc(r.note)}</span>`:""}</li>`;
+  return `<li>${esc(r.label)}${r.note?`<span class="note">${esc(r.note)}</span>`:""}</li>`;
+}
+function worksheetHtml(w, resHeadingLabel, actHeadingLabel){
+  if (w.type === "link"){
+    return `<div class="worksheet-box"><a href="${esc(w.url)}" target="_blank" rel="noopener">${esc(w.text)}</a>${w.cite?`<span class="note">${esc(w.cite)}</span>`:""}</div>`;
+  }
+  return `<p class="no-item">${esc(w.text)}</p>`;
+}
+
+function renderModules(){
+  const c = COURSES[state.course];
+  document.getElementById("mod-title").textContent = c.title + " — Weekly Modules";
+  const navEl = document.getElementById("weekNavList");
+  const listEl = document.getElementById("moduleList");
+  navEl.innerHTML = c.modules.map(m=>`<li><a href="#wk-${m.week}" data-week="${m.week}">Week ${m.week} — ${esc(m.topic.length>26? m.topic.slice(0,24)+"…":m.topic)}</a></li>`).join("");
+
+  listEl.innerHTML = c.modules.map((m,i)=>`
+    <article class="module ${i===0?'open':''}" id="wk-${m.week}">
+      <div class="module-head" data-toggle>
+        <div class="wk-badge"><b>${m.week}</b><span>WK</span></div>
+        <div class="titles">
+          <p class="topic">${esc(m.topic)}</p>
+          <p class="date">${m.date?esc(m.date)+" · ":""}${state.course==='emi'?'Week':'週次'} ${m.week}</p>
+        </div>
+        <div class="chev">▾</div>
       </div>
-      <div class="grid-layout" id="materialsGrid"></div>
-    </section>
+      <div class="module-body">
+        <p class="content-text">${esc(m.content)}</p>
 
-    <!-- 歷年成果 -->
-    <section class="showcase-section" id="showcase">
-      <h2 id="showcaseHeading">Student Showcase</h2>
-      <div class="grid-layout" id="showcaseGrid"></div>
-    </section>
+        <p class="res-heading"><span class="sw"></span>${state.course==='emi'?'RESOURCE WEBSITES':'資源網站'}</p>
+        ${m.resources.length ? `<ul class="res-list">${m.resources.map(resourceHtml).join("")}</ul>` : `<p class="no-item">${state.course==='emi'?'No external resource for this week.':'本週無外部資源連結。'}</p>`}
 
-    <section class="groups-section" id="groupsSection" style="display:none;">
-      <h2 id="groupsHeading">This semester's groups</h2>
-      <div class="grid-layout" id="groupsGrid"></div>
-    </section>
+        <p class="res-heading worksheet"><span class="sw"></span>${state.course==='emi'?'WORKSHEET / ACTIVITY':'學習單／活動'}</p>
+        ${worksheetHtml(m.worksheet)}
 
-    <!-- 參考書目 -->
-    <section class="references-section">
-      <h2 id="referencesHeading">References</h2>
-      <ul class="ref-list" id="referencesList"></ul>
-      <p class="note-text" id="supportNote"></p>
-    </section>
-
-    <!-- 進度回報表單 (已串接你的 Formspree) -->
-    <section class="submit-section" id="submit">
-      <div class="form-card">
-        <h2 id="submitHeading">Submit Progress</h2>
-        <form action="https://formspree.io/f/xqpkyjrj" method="POST" class="modern-form">
-          <input type="hidden" name="Course" id="courseHiddenInput" value="Safety Education (EMI)">
-          
-          <div class="form-group">
-            <label for="whoInput" id="lblWho">Your name or group</label>
-            <input type="text" name="Name_or_Group" id="whoInput" required />
-          </div>
-          
-          <div class="form-group">
-            <label for="msgInput" id="lblMsg">Progress update</label>
-            <textarea name="Message" id="msgInput" rows="4" required></textarea>
-          </div>
-          
-          <button type="submit" class="submit-btn" id="submitBtn">Send Update</button>
-          <p class="form-note" id="submitNote"></p>
-        </form>
+        ${m.tags && m.tags.length ? `<div class="tag-row">${m.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>` : ""}
       </div>
-    </section>
+    </article>
+  `).join("");
 
-  </main>
+  listEl.querySelectorAll(".module-head").forEach(h=>{
+    h.addEventListener("click", ()=> h.closest(".module").classList.toggle("open"));
+  });
 
-  <script src="script.js?v=4"></script>
+  setupScrollSpy();
+}
+
+function renderRefs(){
+  const c = COURSES[state.course];
+  const rows = [];
+  c.modules.forEach(m=>{
+    const resTxt = m.resources.length ? m.resources.map(r=> r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.label)}</a>` : esc(r.label)).join("<br>") : `<span class="no-item">—</span>`;
+    const wsTxt = m.worksheet.type==="link" ? `<a href="${esc(m.worksheet.url)}" target="_blank" rel="noopener">${esc(m.worksheet.text)}</a>` : `<span class="no-item">${esc(m.worksheet.text)}</span>`;
+    rows.push(`<tr><td><b>${state.course==='emi'?'Week':'週'} ${m.week}</b> · ${esc(m.topic)}</td><td>${resTxt}</td><td>${wsTxt}</td></tr>`);
+  });
+  document.querySelector("#refTable tbody").innerHTML = rows.join("");
+}
+
+function setupScrollSpy(){
+  const links = [...document.querySelectorAll(".week-nav a")];
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if (e.isIntersecting){
+        links.forEach(l=>l.classList.remove("current"));
+        const wk = e.target.id.replace("wk-","");
+        const active = document.querySelector(`.week-nav a[data-week="${wk}"]`);
+        if (active) active.classList.add("current");
+      }
+    });
+  }, { rootMargin: "-20% 0px -70% 0px" });
+  document.querySelectorAll(".module").forEach(m=>obs.observe(m));
+}
+
+function renderAll(){
+  document.body.setAttribute("data-course", state.course);
+  document.getElementById("brandSub").textContent = state.course === "emi" ? "Safety Education — Course LMS" : "安全教育專題研究 — 課程 LMS";
+  renderOverview();
+  renderModules();
+  renderRefs();
+}
+
+document.querySelectorAll(".course-switch button").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    state.course = btn.dataset.course;
+    document.querySelectorAll(".course-switch button").forEach(b=>b.setAttribute("aria-pressed", b===btn));
+    renderAll();
+  });
+});
+
+document.querySelectorAll(".tabs button").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    state.tab = btn.dataset.tab;
+    document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected", b===btn));
+    document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+    document.getElementById("panel-"+btn.dataset.tab).classList.add("active");
+  });
+});
+
+renderAll();
+</script>
 </body>
 </html>
