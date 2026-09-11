@@ -208,6 +208,22 @@
   .pr-status{ font-size:13px; min-height:1.2em; }
   .pr-status.ok{ color:#1E7A34; }
   .pr-status.error{ color:#B3261E; }
+
+  /* ---------- showcase ---------- */
+  .showcase-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:16px; }
+  .showcase-card{
+    display:block; text-decoration:none; background:var(--paper-raised); border:1px solid var(--line);
+    overflow:hidden; transition:border-color .15s, transform .15s;
+  }
+  .showcase-card:hover{ border-color:var(--accent); transform:translateY(-2px); }
+  .showcase-cover{
+    height:110px; display:flex; align-items:center; justify-content:center;
+    font-family:'Newsreader',serif; font-weight:600; font-size:15px; color:#fff; text-align:center; padding:14px;
+  }
+  .showcase-body{ padding:14px 16px 16px; }
+  .showcase-body .sc-title{ font-family:'Newsreader',serif; font-weight:600; font-size:16px; margin:0 0 8px; color:var(--ink); }
+  .showcase-body .sc-play{ font-size:12.5px; font-weight:600; color:var(--accent); display:inline-flex; align-items:center; gap:5px; }
+  .showcase-empty{ font-size:13.5px; color:var(--ink-soft); font-style:italic; }
 </style>
 </head>
 <body data-course="emi">
@@ -223,6 +239,7 @@
       <button role="tab" aria-selected="false" data-tab="modules">每週單元 Weekly Modules</button>
       <button role="tab" aria-selected="false" data-tab="refs">參考資源總表 All References</button>
       <button role="tab" aria-selected="false" data-tab="progress">回報進度 Report Progress</button>
+      <button role="tab" aria-selected="false" data-tab="showcase">作品展示 Showcase</button>
     </nav>
     <div class="course-switch" role="tablist" aria-label="course">
       <button aria-pressed="true" data-course="emi">EMI 大學部</button>
@@ -330,6 +347,16 @@
       <button class="pr-submit" type="submit" id="prSubmitBtn">Submit &amp; notify instructor</button>
       <div class="pr-status" id="prStatus"></div>
     </form>
+  </section>
+
+  <!-- ================= SHOWCASE ================= -->
+  <section class="panel" id="panel-showcase">
+    <div class="lede">
+      <p class="kicker" id="sc-kicker">Past student work</p>
+      <h1 id="sc-h1">Showcase</h1>
+      <p id="sc-desc">Interactive safety-education games built by previous students' AI-assisted design projects. Click through to play.</p>
+    </div>
+    <div class="showcase-grid" id="showcaseGrid"></div>
   </section>
 
 </div>
@@ -440,6 +467,15 @@ emi: {
     { week:16, topic:"Final Demonstration & Peer Review",
       content:"Team presentations of AI-assisted interactive safety-education games; peer and instructor evaluation against instructional-design criteria.",
       resources: [], worksheet:{type:"note", text:"Evaluation rubric derived from the Assessment section (design doc / prototype / AI-use log / demonstration criteria)."}, tags:["Final demonstration","20%"] }
+  ],
+  showcase: [
+    { title:"Water Safety", url:"https://app-3adf81f7.base44.app/" },
+    { title:"Food Safety", url:"https://food-safety-heroes-089b5c91.base44.app/" },
+    { title:"Cyber Safety", url:"https://cyber-fisher-gone-phishing-0aa85727.base44.app/" },
+    { title:"Traffic Safety", url:"https://copy-f0a4f48d.base44.app" },
+    { title:"Drug Safety", url:"https://safe-start-adventures-d66173e8.base44.app/" },
+    { title:"Disaster Preparedness", url:"https://sale-march-42698515.figma.site/" },
+    { title:"Home Safety", url:"https://safety-sparks-f472526c.base44.app/" }
   ]
 },
 
@@ -531,7 +567,8 @@ grad: {
     { week:16, date:"12/16", topic:"綜合演示、同儕互評與課程總結",
       content:"綜合反思AI輔助研究與介入設計歷程之心得與限制。",
       resources: [], worksheet:{type:"note", text:"同儕互評表＋AI輔助歷程反思單（依評量標準製作）。"}, tags:["介入計畫與演示 70%"] }
-  ]
+  ],
+  showcase: []
 }
 };
 
@@ -674,6 +711,7 @@ function renderAll(){
   renderModules();
   renderRefs();
   renderProgressPanel();
+  renderShowcase();
 }
 
 document.querySelectorAll(".course-switch button").forEach(btn=>{
@@ -773,6 +811,36 @@ document.getElementById("progressReportForm").addEventListener("submit", async (
     statusEl.classList.add("error");
   }
 });
+
+// ---------------- showcase ----------------
+const SC_I18N = {
+  emi: { kicker:"Past student work", h1:"Showcase", desc:"Interactive safety-education games built by previous students' AI-assisted design projects. Click through to play.", play:"Play \u2197", empty:"No projects added yet." },
+  grad: { kicker:"歷屆學生作品", h1:"作品展示", desc:"歷屆同學透過AI輔助設計開發的安全教育互動遊戲，點選卡片即可體驗。", play:"立即體驗 \u2197", empty:"目前尚未加入作品。" }
+};
+const SC_COLORS = ["#A6192E","#14315E","#A9660A","#3E6B4F","#5B4B8A","#8A3B2E","#2E6E7A"];
+
+function renderShowcase(){
+  const c = COURSES[state.course];
+  const s = SC_I18N[state.course] || SC_I18N.emi;
+  document.getElementById("sc-kicker").textContent = s.kicker;
+  document.getElementById("sc-h1").textContent = s.h1;
+  document.getElementById("sc-desc").textContent = s.desc;
+  const grid = document.getElementById("showcaseGrid");
+  const items = c.showcase || [];
+  if (!items.length){
+    grid.innerHTML = `<p class="showcase-empty">${esc(s.empty)}</p>`;
+    return;
+  }
+  grid.innerHTML = items.map((it,i)=>`
+    <a class="showcase-card" href="${esc(it.url)}" target="_blank" rel="noopener">
+      <div class="showcase-cover" style="background:${SC_COLORS[i % SC_COLORS.length]}">${esc(it.title)}</div>
+      <div class="showcase-body">
+        <p class="sc-title">${esc(it.title)}</p>
+        <span class="sc-play">${s.play}</span>
+      </div>
+    </a>
+  `).join("");
+}
 
 document.querySelectorAll(".tabs button").forEach(btn=>{
   btn.addEventListener("click", ()=>{
