@@ -1,182 +1,164 @@
 :root {
-  /* 基礎色票設定 */
-  --c-primary: #A6192E;       /* NTNU Red */
-  --c-primary-light: #fef2f2;
-  --c-primary-dark: #7f1d1d;
-  
-  --c-bg: #f8fafc;
-  --c-surface: #ffffff;
-  
-  --c-text-main: #0f172a;
-  --c-text-muted: #64748b;
-  --c-border: #e2e8f0;
+  --ntnu-red: #a6192e;
+  --ntnu-red-dark: #7d1322;
+  --ntnu-blue: #00337a;
+  --ntnu-blue-dark: #00265c;
 
-  /* 陰影與圓角 */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-full: 9999px;
+  --accent: var(--ntnu-red);
+  --accent-dark: var(--ntnu-red-dark);
 
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --ink: #1a1a1a;
+  --ink-soft: #595959;
+  --ink-muted: #8a8a8a;
+
+  --bg: #f5f5f6;
+  --surface: #ffffff;
+  --border: #dfdfe1;
+
+  --radius: 8px;
+  --radius-sm: 6px;
+
+  --danger: #c0392b;
+
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
 }
-
-/* 研究所課程切換色票 */
 body[data-course="grad"] {
-  --c-primary: #00337A;       /* NTNU Blue */
-  --c-primary-light: #eff6ff;
-  --c-primary-dark: #1e3a8a;
+  --accent: var(--ntnu-blue);
+  --accent-dark: var(--ntnu-blue-dark);
 }
 
-/* Reset */
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; background: var(--c-bg); color: var(--c-text-main); line-height: 1.6; }
-a { text-decoration: none; color: inherit; }
-button, input, textarea { font-family: inherit; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 
-/* Navbar - 毛玻璃設計 */
-.navbar {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--c-border);
-}
-.nav-container {
-  max-width: 1000px; margin: 0 auto; padding: 16px 24px;
-  display: flex; justify-content: space-between; align-items: center;
-}
-.brand { font-weight: 800; font-size: 1.25rem; color: var(--c-primary); letter-spacing: -0.02em; }
-.nav-links { display: flex; gap: 24px; align-items: center; }
-.nav-links a { font-weight: 600; font-size: 0.9rem; color: var(--c-text-muted); transition: color 0.2s; }
-.nav-links a:hover { color: var(--c-primary); }
-.nav-btn {
-  background: var(--c-primary); color: white !important;
-  padding: 8px 16px; border-radius: var(--radius-full);
-}
-.nav-btn:hover { background: var(--c-primary-dark); }
-@media (max-width: 640px) { .nav-links { display: none; } }
-
-/* 佈局容器 */
-.container { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
-
-/* 課程切換器 */
-.course-switcher {
-  display: flex; background: var(--c-surface); padding: 6px;
-  border-radius: var(--radius-md); box-shadow: var(--shadow-sm);
-  border: 1px solid var(--c-border); margin-bottom: 40px;
-}
-.course-switcher button {
-  flex: 1; padding: 12px; background: transparent; border: none;
-  font-weight: 700; color: var(--c-text-muted); cursor: pointer;
-  border-radius: 8px; transition: all 0.2s;
-}
-.course-switcher button.active {
-  background: var(--c-primary-light); color: var(--c-primary);
+button, input, select, textarea { font-family: inherit; -webkit-appearance: none; appearance: none; }
+button { border: none; background: none; cursor: pointer; }
+a, button, input, select, textarea { outline: none; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
-/* 標題區塊 */
-.hero { margin-bottom: 48px; }
-.hero h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 16px; }
-.hero .subtitle { font-size: 1.1rem; color: var(--c-text-muted); line-height: 1.8; margin-bottom: 24px; }
-.tags-container { display: flex; flex-wrap: wrap; gap: 8px; }
-.tag { 
-  background: var(--c-primary-light); color: var(--c-primary);
-  font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: var(--radius-full);
-}
+body { margin: 0; color: var(--ink); line-height: 1.65; background: var(--bg); }
+.wrap { max-width: 900px; margin: 0 auto; padding: 0 20px; }
 
-/* 雙欄資訊區 (Objectives & Grading) */
-.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 64px; }
-.info-card {
-  background: var(--c-surface); padding: 32px;
-  border-radius: var(--radius-lg); border: 1px solid var(--c-border);
-  box-shadow: var(--shadow-sm);
-}
-.info-card h2 { font-size: 1.25rem; margin-bottom: 24px; display: flex; align-items: center; gap: 8px; }
-.info-card h2::before { content: ""; display: block; width: 4px; height: 18px; background: var(--c-primary); border-radius: 2px; }
+/* ---------- header ---------- */
+header.site-header { background: var(--accent); position: sticky; top: 0; z-index: 30; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+.header-inner { max-width: 900px; margin: 0 auto; padding: 0 20px; height: 54px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { color: #fff; font-weight: 700; font-size: 15px; white-space: nowrap; }
+.quick-nav { display: flex; gap: 2px; }
+.quick-nav a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 12.5px; font-weight: 500; padding: 7px 11px; border-radius: var(--radius-sm); white-space: nowrap; }
+.quick-nav a:hover { background: rgba(255,255,255,0.14); color: #fff; }
+@media (max-width: 700px) { .quick-nav { display: none; } }
 
-/* 列表設計 */
-.clean-list { list-style: none; display: flex; flex-direction: column; gap: 16px; }
-.clean-list li {
-  padding-bottom: 16px; border-bottom: 1px solid var(--c-border);
-  display: flex; flex-direction: column; gap: 6px;
+/* ---------- course toggle ---------- */
+.course-toggle { display: flex; gap: 8px; margin: 20px 0 26px; }
+.course-toggle button {
+  flex: 1; padding: 11px 14px; border-radius: var(--radius); border: 1px solid var(--border);
+  background: var(--surface); color: var(--ink-soft); font-size: 13.5px; font-weight: 600;
 }
-.clean-list li:last-child { border-bottom: none; padding-bottom: 0; }
-.clean-list .item-text { font-weight: 500; font-size: 0.95rem; }
+.course-toggle button.active { border-color: var(--accent); color: var(--accent); background: #fff; box-shadow: inset 0 0 0 1px var(--accent); }
 
-/* 進度條設計 */
-.grade-row { margin-bottom: 16px; }
-.grade-label { display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; }
-.grade-bar { height: 8px; background: var(--c-bg); border-radius: var(--radius-full); overflow: hidden; }
-.grade-fill { height: 100%; background: var(--c-primary); border-radius: var(--radius-full); }
+h1 { font-size: 24px; font-weight: 700; margin: 0 0 6px; }
+h2 { font-size: 17px; font-weight: 700; margin: 40px 0 14px; border-left: 3px solid var(--accent); padding-left: 10px; scroll-margin-top: 68px; }
+p.lead { color: var(--ink-soft); font-size: 14px; margin: 0 0 6px; }
 
-/* 通用區塊標題 */
-section { margin-bottom: 64px; scroll-margin-top: 100px; }
-h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 24px; color: var(--c-text-main); }
-.section-desc { font-size: 0.95rem; color: var(--c-text-muted); margin-bottom: 24px; line-height: 1.6; }
+/* ---------- grading ---------- */
+.grading-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+.grade-row { margin-bottom: 14px; }
+.grade-row:last-child { margin-bottom: 0; }
+.grade-row .grade-label { display: flex; justify-content: space-between; font-size: 13.5px; margin-bottom: 6px; }
+.grade-row .grade-label b { font-weight: 700; }
+.grade-bar-track { background: var(--bg); border-radius: 999px; height: 8px; overflow: hidden; }
+.grade-bar-fill { background: var(--accent); height: 100%; border-radius: 999px; }
 
-/* 網格系統 (Materials & Showcase) */
-.grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
-.card {
-  background: var(--c-surface); border: 1px solid var(--c-border);
-  border-radius: var(--radius-lg); padding: 24px;
-  display: flex; flex-direction: column;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--c-primary); }
-.card-badge {
-  align-self: flex-start; font-size: 0.75rem; font-weight: 800; text-transform: uppercase;
-  background: var(--c-primary-light); color: var(--c-primary);
-  padding: 4px 10px; border-radius: var(--radius-full); margin-bottom: 12px;
-}
-.card-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; line-height: 1.4; }
-.card-desc { font-size: 0.9rem; color: var(--c-text-muted); flex-grow: 1; margin-bottom: 20px; }
-.card-link {
-  font-size: 0.85rem; font-weight: 600; color: var(--c-primary);
-  display: inline-flex; align-items: center; gap: 4px;
-}
-.card-link:hover { text-decoration: underline; }
+/* ---------- materials ---------- */
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--radius); padding: 16px 18px; }
+.card .week-tag { font-size: 11.5px; color: var(--ink-muted); margin: 0 0 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
+.card .card-title { font-size: 15px; font-weight: 700; margin: 0 0 6px; }
+.card .card-desc { font-size: 13px; color: var(--ink-soft); margin: 0; }
+.card .card-link { display: inline-block; margin-top: 10px; font-size: 12.5px; font-weight: 600; color: var(--accent); text-decoration: none; }
+.card .card-link:hover { text-decoration: underline; }
 
-/* 歷年成果卡片 */
-.showcase-card {
-  border: 1px solid var(--c-border); border-radius: var(--radius-lg);
-  overflow: hidden; background: var(--c-surface);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.showcase-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
-.showcase-card canvas { width: 100%; height: auto; display: block; border-bottom: 1px solid var(--c-border); }
-.showcase-meta { padding: 16px; display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: var(--c-text-muted); }
+/* ---------- showcase ---------- */
+.showcase-card { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); text-decoration: none; color: inherit; display: block; }
+.showcase-card:hover { border-color: var(--accent); }
+.showcase-card canvas { display: block; width: 100%; height: auto; }
+.showcase-card .meta { padding: 10px 14px; display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-muted); font-weight: 500; border-top: 1px solid var(--border); }
 
-/* 參考書目 */
-.ref-list { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
-.ref-list li { position: relative; padding-left: 20px; font-size: 0.9rem; color: var(--c-text-muted); }
-.ref-list li::before { content: "•"; position: absolute; left: 0; color: var(--c-primary); font-weight: bold; }
-.ref-list a { color: var(--c-primary); font-weight: 500; }
-.ref-list a:hover { text-decoration: underline; }
-.note-text { font-size: 0.85rem; color: var(--c-text-muted); font-style: italic; }
+/* ---------- groups ---------- */
+.group-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+.group-card .group-name { font-weight: 700; font-size: 14px; margin: 0 0 4px; }
+.group-card .group-members { font-size: 13px; color: var(--ink-soft); margin: 0; }
 
-/* 現代化表單設計 */
-.form-card {
-  background: var(--c-surface); border: 1px solid var(--c-border);
-  border-radius: var(--radius-lg); padding: 40px; box-shadow: var(--shadow-sm);
-  max-width: 600px;
+/* ---------- submit / mailto form ---------- */
+form.stack { display: flex; flex-direction: column; gap: 14px; max-width: 520px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; }
+form.stack label { font-size: 13px; font-weight: 600; color: var(--ink-soft); display: flex; flex-direction: column; gap: 6px; }
+form.stack input, form.stack textarea {
+  padding: 10px 12px; border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius-sm);
+  font-size: 14px; font-family: inherit; color: var(--ink);
 }
-.form-group { margin-bottom: 24px; }
-.form-group label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; }
-.form-group input, .form-group textarea {
-  width: 100%; padding: 12px 16px; font-size: 1rem;
-  border: 1px solid var(--c-border); border-radius: 8px; background: var(--c-bg);
-  transition: all 0.2s;
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 11px 20px; border-radius: var(--radius-sm); background: var(--accent); color: #fff; font-size: 14px; font-weight: 700; align-self: flex-start; }
+.btn:hover { background: var(--accent-dark); }
+.field-error { color: var(--danger); font-size: 12px; margin-top: -8px; }
+.form-note { font-size: 12.5px; color: var(--ink-muted); margin-top: -4px; }
+
+/* ---------- objectives / methods / sdgs / references lists ---------- */
+.objectives-list, .methods-list, .sdgs-list, .references-list {
+  list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px;
 }
-.form-group input:focus, .form-group textarea:focus {
-  outline: none; border-color: var(--c-primary); background: var(--c-surface);
-  box-shadow: 0 0 0 3px var(--c-primary-light);
+.objectives-list li, .methods-list li, .sdgs-list li {
+  background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+  border-radius: var(--radius); padding: 12px 14px; font-size: 13.5px; color: var(--ink-soft);
+  display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;
 }
-.submit-btn {
-  background: var(--c-primary); color: white; border: none;
-  padding: 12px 24px; font-size: 1rem; font-weight: 600;
-  border-radius: 8px; cursor: pointer; transition: all 0.2s;
+.objectives-list li span:first-child { color: var(--ink); }
+.objectives-list li .tag {
+  font-size: 11px; font-weight: 700; color: var(--accent); background: var(--bg);
+  padding: 3px 9px; border-radius: 999px; white-space: nowrap;
 }
-.submit-btn:hover { background: var(--c-primary-dark); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
-.form-note { font-size: 0.85rem; color: var(--c-text-muted); margin-top: 12px; }
+.references-list { gap: 8px; }
+.references-list li {
+  font-size: 12.5px; color: var(--ink-soft); padding-left: 14px; position: relative;
+}
+.references-list li::before { content: "—"; position: absolute; left: 0; color: var(--ink-muted); }
+.references-list a { color: var(--accent); text-decoration: none; word-break: break-all; }
+.references-list a:hover { text-decoration: underline; }
+
+.empty-state { color: var(--ink-muted); font-size: 13.5px; padding: 10px 0; }
+
+/* ---------- midterm report page ---------- */
+.report-howto { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--radius); padding: 14px 18px; margin: 18px 0 8px; font-size: 13.5px; color: var(--ink-soft); }
+.report-howto ol { margin: 8px 0 8px 18px; padding: 0; }
+.report-howto li { margin-bottom: 4px; }
+.report-howto .form-note { margin: 6px 0 0; }
+form.report { display: flex; flex-direction: column; gap: 22px; margin: 20px 0 60px; }
+form.report fieldset { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 22px 22px; margin: 0; display: flex; flex-direction: column; gap: 14px; scroll-margin-top: 68px; min-width: 0; }
+form.report legend { font-size: 16px; font-weight: 700; padding: 0 8px; color: var(--accent); }
+form.report label { font-size: 13px; font-weight: 600; color: var(--ink-soft); display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+form.report input, form.report textarea, form.report select {
+  padding: 10px 12px; border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius-sm);
+  font-size: 14px; color: var(--ink); width: 100%; font-weight: 400;
+}
+form.report select { background-image: linear-gradient(45deg, transparent 50%, var(--ink-muted) 50%), linear-gradient(135deg, var(--ink-muted) 50%, transparent 50%); background-position: calc(100% - 18px) 55%, calc(100% - 13px) 55%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 32px; }
+form.report textarea { resize: vertical; line-height: 1.5; }
+form.report .invalid { border-color: var(--danger); background: #fff6f5; }
+form.report .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 640px) { form.report .row { grid-template-columns: 1fr; } form.report fieldset { padding: 16px; } }
+.btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn-secondary { background: var(--surface); color: var(--accent); border: 1px solid var(--accent); }
+.btn-secondary:hover { background: var(--bg); }
+.btn-ghost { background: none; color: var(--ink-muted); border: 1px solid transparent; }
+.btn-ghost:hover { color: var(--danger); background: none; }
+form.report .field-error { margin-top: 0; font-size: 13px; }
+form.report .form-note { margin: 0; }
+details.preview { font-size: 13px; color: var(--ink-soft); }
+details.preview summary { cursor: pointer; font-weight: 600; }
+details.preview pre { white-space: pre-wrap; word-break: break-word; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; max-height: 320px; overflow: auto; font-size: 12px; line-height: 1.55; font-family: ui-monospace, Menlo, Consolas, monospace; }
+
+/* link card on the main page */
+.midterm-callout { display: none; background: var(--surface); border: 1px solid var(--accent); border-radius: var(--radius); padding: 14px 18px; margin: 0 0 16px; max-width: 520px; font-size: 13.5px; color: var(--ink-soft); }
+.midterm-callout b { color: var(--ink); display: block; margin-bottom: 4px; }
+.midterm-callout a { display: inline-block; margin-top: 8px; color: var(--accent); font-weight: 700; text-decoration: none; }
+.midterm-callout a:hover { text-decoration: underline; }

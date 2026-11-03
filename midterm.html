@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Midterm Progress Report – Safety Education (EMI)</title>
+<link rel="stylesheet" href="styles.css?v=3" />
+</head>
+<body data-course="emi">
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">Safety Education (EMI)</div>
+    <nav class="quick-nav">
+      <a href="index.html">Course home</a>
+      <a href="#a">Team</a>
+      <a href="#b">Lesson plan</a>
+      <a href="#c">Base44 game</a>
+      <a href="#d">AI use</a>
+      <a href="#e">Status</a>
+      <a href="#send">Send</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <h1>Midterm progress report</h1>
+  <p class="lead">One report per group. Fill in every section, then send it to your instructor by email. Short, specific answers are better than long ones; link to your work instead of describing it.</p>
+
+  <div class="report-howto">
+    <b>How it works</b>
+    <ol>
+      <li>Fill in the form below. Your answers are saved in this browser as you type, so you can come back.</li>
+      <li>Press <b>Open email</b>. Your own email app opens with the report already written and addressed to the instructor.</li>
+      <li>If the report is long, the page copies it for you; paste it into the email body (Ctrl+V / Cmd+V) and press send.</li>
+    </ol>
+    <p class="form-note">Nothing is sent from this page itself. Fields marked * are required.</p>
+  </div>
+
+  <form class="report" id="reportForm" novalidate>
+
+    <fieldset id="a">
+      <legend>A. Team and project</legend>
+      <div class="row">
+        <label>Group number *<input name="group" type="text" placeholder="e.g. 3" /></label>
+        <label>Game working title *<input name="title" type="text" placeholder="e.g. Pool Rescue Heroes" /></label>
+      </div>
+      <label>Members (name and student ID) *<textarea name="members" rows="3" placeholder="One person per line"></textarea></label>
+      <div class="row">
+        <label>Safety topic *
+          <select name="topic">
+            <option value="">Choose a topic</option>
+            <option>Traffic safety</option>
+            <option>Water safety</option>
+            <option>Burns, scalds and first aid</option>
+            <option>Fall prevention</option>
+            <option>Fire safety and evacuation</option>
+            <option>Disaster preparedness</option>
+            <option>Food and drug safety</option>
+            <option>Workplace safety</option>
+            <option>Crowd safety</option>
+            <option>Cyber safety</option>
+            <option>Other (say which below)</option>
+          </select>
+        </label>
+        <label>Target learners *<input name="audience" type="text" placeholder="e.g. Grade 4 students in Taiwan" /></label>
+      </div>
+      <label>Who did what so far? *<textarea name="roles" rows="3" placeholder="One line per member: what they have done since Week 4"></textarea></label>
+    </fieldset>
+
+    <fieldset id="b">
+      <legend>B. Lesson plan progress</legend>
+      <div class="row">
+        <label>Lesson plan status *
+          <select name="lp_status">
+            <option value="">Choose one</option>
+            <option>Not started</option>
+            <option>Objectives and outline only</option>
+            <option>First full draft</option>
+            <option>Draft revised after feedback</option>
+            <option>Complete</option>
+          </select>
+        </label>
+        <label>Estimated % complete *<input name="lp_pct" type="number" min="0" max="100" placeholder="0 to 100" /></label>
+      </div>
+      <label>Learning objectives (2 to 3, measurable) *<textarea name="lp_objectives" rows="4" placeholder="After the lesson, learners will be able to ..."></textarea></label>
+      <label>Theory or framework behind the lesson *<textarea name="lp_theory" rows="2" placeholder="e.g. Health Belief Model, Haddon Matrix. Say how it shapes the lesson."></textarea></label>
+      <label>Lesson outline: activities and timing *<textarea name="lp_outline" rows="4" placeholder="e.g. 5 min hook, 15 min game, 10 min discussion ..."></textarea></label>
+      <label>How will you check that learners learned? *<textarea name="lp_assess" rows="2" placeholder="Quiz, in-game score, observation, exit question ..."></textarea></label>
+      <label>Evidence and sources used so far *<textarea name="lp_sources" rows="3" placeholder="Links or citations (official Taiwan sources, course references, papers)"></textarea></label>
+      <label>Link to the lesson plan draft<input name="lp_link" type="url" placeholder="https://docs.google.com/..." /></label>
+    </fieldset>
+
+    <fieldset id="c">
+      <legend>C. Base44 game progress</legend>
+      <div class="row">
+        <label>Game build status *
+          <select name="g_status">
+            <option value="">Choose one</option>
+            <option>Idea only</option>
+            <option>Game design written</option>
+            <option>First prompts run in Base44</option>
+            <option>Clickable prototype</option>
+            <option>Playable from start to finish</option>
+            <option>Playtested with others</option>
+          </select>
+        </label>
+        <label>Estimated % complete *<input name="g_pct" type="number" min="0" max="100" placeholder="0 to 100" /></label>
+      </div>
+      <label>Game concept in two or three sentences *<textarea name="g_concept" rows="3" placeholder="What does the player do, and what do they win or lose?"></textarea></label>
+      <label>Core game mechanic and how it teaches objective 1 *<textarea name="g_mechanic" rows="3" placeholder="Explain how playing the game leads to the learning, not only how it looks."></textarea></label>
+      <label>Screens, levels or scenarios: planned and done *<textarea name="g_scope" rows="2" placeholder="e.g. 5 scenarios planned, 2 built"></textarea></label>
+      <label>Base44 app link (preview or published)<input name="g_link" type="url" placeholder="https://..." /></label>
+      <label>Playtest plan<textarea name="g_playtest" rows="2" placeholder="Who will try the game, when, and what you will ask them"></textarea></label>
+    </fieldset>
+
+    <fieldset id="d">
+      <legend>D. AI use log</legend>
+      <label>Which AI tools did you use, and for what? *<textarea name="ai_tools" rows="3" placeholder="e.g. Base44 for building screens; ChatGPT for quiz wording"></textarea></label>
+      <label>One prompt that worked well *<textarea name="ai_good" rows="3" placeholder="Paste the prompt and say what you got"></textarea></label>
+      <label>One time the AI got it wrong, and how you caught it *<textarea name="ai_bad" rows="3" placeholder="e.g. A wrong first-aid step; you checked it against an official source"></textarea></label>
+      <label>How do you check AI-written safety content before using it? *<textarea name="ai_verify" rows="2" placeholder="Safety facts must be checked against an official source."></textarea></label>
+    </fieldset>
+
+    <fieldset id="e">
+      <legend>E. Overall status and next steps</legend>
+      <div class="row">
+        <label>Overall, our group is *
+          <select name="overall">
+            <option value="">Choose one</option>
+            <option>On track</option>
+            <option>Slightly behind</option>
+            <option>Seriously behind</option>
+          </select>
+        </label>
+        <label>Hours the group spent since Week 4<input name="hours" type="number" min="0" placeholder="Total, all members" /></label>
+      </div>
+      <label>Biggest problem right now *<textarea name="blocker" rows="2" placeholder="Technical, content, teamwork, time ..."></textarea></label>
+      <label>What help do you need from the instructor or TA?<textarea name="help" rows="2"></textarea></label>
+      <label>Three milestones before Week 15 playtesting, with dates *<textarea name="next" rows="4" placeholder="1. ...&#10;2. ...&#10;3. ..."></textarea></label>
+    </fieldset>
+
+    <fieldset id="send">
+      <legend>Send your report</legend>
+      <div class="field-error" id="reportError" role="alert"></div>
+      <div class="btn-row">
+        <button class="btn" type="submit" id="openMailBtn">Open email</button>
+        <button class="btn btn-secondary" type="button" id="copyBtn">Copy report text</button>
+        <button class="btn btn-secondary" type="button" id="downloadBtn">Download as .txt</button>
+        <button class="btn btn-ghost" type="button" id="clearBtn">Clear form</button>
+      </div>
+      <p class="form-note" id="reportNote"></p>
+      <details class="preview">
+        <summary>Preview the email text</summary>
+        <pre id="previewText"></pre>
+      </details>
+    </fieldset>
+
+  </form>
+</div>
+
+<script src="midterm.js?v=1"></script>
+</body>
+</html>

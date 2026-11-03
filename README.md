@@ -1,114 +1,78 @@
-# Safety Education course site — setup (v3)
+# Safety Education course site — simplified static version
 
-## Design
+No Google Sheet, no Apps Script, no backend of any kind. Three files:
+`index.html`, `styles.css`, `script.js`. Everything — weekly materials, grading,
+past projects, groups — lives directly inside `script.js` as plain data you edit
+by hand.
 
-Institutional/LMS look modeled on the NTNU color direction — solid color top bar
-(no blur/translucency), underline-tab course switcher, white cards with a colored
-left accent bar. EMI course = red accent, grad seminar = blue accent, switched
-automatically via `body[data-course]`. Built to be read quickly by students
-scanning for what's due, not to look like a marketing site.
+## Deploy
 
-## What's in this version
+1. Push these 3 files to a GitHub repo.
+2. Repo Settings → Pages → deploy from branch `main`, folder `/ (root)`.
+3. Live at `https://yourusername.github.io/reponame/`.
 
-- **Roster & groups** (`admin.html` + `Students` tab) — edit names, emails, and
-  group numbers in a table, save once. Feeds the dropdowns on Submit/Progress.
-- **Attendance** (`Attendance` + `AttendanceCodes` tabs, built into `progress.html`) —
-  set a code per week in `admin.html`, students enter it to check in. Counts toward
-  the 10% attendance component.
-- **Weekly progress log** (`Progress` tab, in `progress.html`) — each group (EMI) or
-  student (grad) logs progress per week and sees their own history.
-- **Submission history** (in `progress.html`) — students see their own past
-  submissions from the `Submissions` tab without leaving the page.
-- **Announcements** (`Announcements` tab, posted from `admin.html`, shown on
-  `index.html`) — up to 5 most recent per course/semester.
-- **Dashboard** (`dashboard.html`, passphrase-gated like `admin.html`) — read-only
-  overview: attendance rate for a selected week, which groups/students have never
-  submitted anything, which haven't logged progress for a selected week.
-- **Weekly reminder emails** (`sendWeeklyReminders` in `Code.gs`) — optional, needs
-  a manual trigger setup, see step 6 below.
-- **Semesters** — every data tab has a `Semester` column; a selector sits atop every
-  page. `Config` tab's `ACTIVE_SEMESTER` sets the default for new visitors.
+That's it — no Apps Script deployment, no spreadsheet setup, no `ADMIN_KEY`.
 
-## 1. Backend (Google Sheet + Apps Script)
+## How to add your real weekly material links
 
-1. Create a new blank Google Sheet.
-2. Extensions > Apps Script. Delete the placeholder code, paste in `apps-script/Code.gs`.
-3. Run `setupSheets` once (function dropdown > Run ▶, approve permissions).
-   Creates 11 tabs: `Materials_EMI`, `Materials_Grad`, `Showcase`, `Submissions`,
-   `Comments`, `Students`, `Progress`, `Attendance`, `AttendanceCodes`,
-   `Announcements`, `Config`.
-4. Open the `Config` tab. Replace the `ADMIN_KEY` value with a passphrase only you
-   know — this unlocks `admin.html` and `dashboard.html`. It's a simple shared-secret
-   check, not real authentication — don't use it for anything more sensitive than
-   "keep students from editing the roster by accident."
-5. Deploy > New deployment > Web app. Execute as: **Me**. Who has access: **Anyone**.
-   Copy the Web app URL.
-6. *(Optional)* To turn on weekly reminder emails: in the Apps Script editor, click
-   the clock icon (Triggers) in the left sidebar > Add Trigger > choose function
-   `sendWeeklyReminders` > Select event source: Time-driven > Week timer > pick a
-   day and time > Save. This can't be turned on just by deploying code — it's a
-   one-time manual step in the Apps Script UI. Only students with an `Email` filled
-   in on the `Students` tab will receive anything.
+Open `script.js`, find the `DATA.emi.weeks` or `DATA.grad.weeks` array. Each week
+looks like this:
 
-## 2. Frontend (GitHub Pages)
+```js
+{ week: 5, topic: "Traffic Safety", desc: "...", link: "" },
+```
 
-1. Open `site/config.js`, replace `GAS_URL` with the Web app URL.
-2. Push everything in `site/` to a GitHub repo.
-3. Repo Settings > Pages > deploy from branch `main`, folder `/ (root)`.
-4. Your site is live at `https://yourusername.github.io/reponame/`.
+Paste your file/slide/Drive link between the quotes in `link: ""`, e.g.:
 
-## 3. Set up a semester
+```js
+{ week: 5, topic: "Traffic Safety", desc: "...", link: "https://drive.google.com/..." },
+```
 
-1. Go to `admin.html` on your live site, enter the ADMIN_KEY passphrase.
-2. Type the semester code (e.g. `115-1`) into the box next to "Set as active semester"
-   and click it — this becomes the default every visitor sees.
-3. Pick the course (top segmented control), add each student's name (and email —
-   required if you want them to receive reminder emails), and their group number —
-   leave group blank for the grad seminar since it's individual. Click **Save roster**.
-4. Repeat for the other course.
+A week with an empty `link: ""` simply shows no link button — nothing breaks.
+Save the file and re-upload it to GitHub; that's the whole update process.
 
-Re-running this each term: set a new `ACTIVE_SEMESTER` and save a fresh roster.
-Nothing from previous semesters is touched — old data stays exactly where it is,
-just filtered out by default.
+## How to update other content
 
-## Weekly teaching routine
+- **Grading** — edit the `grading` array for each course (`label` + `pct`). The
+  percentages aren't checked against 100 automatically, so double-check they add up.
+- **Showcase (past projects)** — edit the `showcase` array. `color` is a 6-digit
+  hex code without the `#` — the cover image is drawn live from title/who/semester,
+  no image file needed. The two rows marked `EXAMPLE` are placeholders — replace
+  them with real past projects or delete them.
+- **Groups (EMI only)** — edit the `groups` array (`name` + `members` as a plain
+  string of names). Set `groups: null` for a course that doesn't use groups (the
+  grad seminar is already set this way, since it's individual).
 
-- Before each class: in `admin.html`, set that week's attendance code.
-- In class: tell students the code; they check in on `progress.html`.
-- Any time: post an announcement from `admin.html` if something needs flagging.
-- Check `dashboard.html` to see who hasn't checked in, submitted, or logged progress.
+## How "Submit progress" works
 
-## Editing content day to day
+There's no database. The form just builds a `mailto:` link and hands it to the
+browser — clicking "Send" opens the student's own email app (Gmail, Outlook,
+Mail, whatever they have set as default) with:
 
-- **Materials_EMI / Materials_Grad** — edit weekly topics/descriptions/links directly
-  in the Sheet. A row with a blank `Semester` applies to every semester (the default);
-  fill in a specific semester only if that week's content changes that term.
-- **Showcase** — one row per past project. `CoverColorHex` is a 6-digit hex color
-  without the `#`. The cover art is drawn live from this data — no image files to manage.
-- **Students / groups / attendance codes / announcements** — manage through
-  `admin.html`, not by hand-editing the sheet, so everything stays in sync with what
-  the site shows.
-- **Submissions**, **Comments**, **Progress**, **Attendance** — fill themselves in as
-  students use the site.
+- **To:** yutung@gm.ntunhs.edu.tw (already filled in)
+- **Subject:** `NTNU <course name> 進度回報 - <what they typed as their name/group>`
+- **Body:** whatever they typed in the progress box
 
-## Known limits
+Nothing is sent from the page itself — it only opens the student's mail client
+with everything pre-filled; they still have to hit send on their end. If a
+student has no email app configured on the device they're using (e.g. some
+phone browsers), the mailto link may not do anything visible — worth mentioning
+to the class once at the start of term.
 
-- The comments box polls every 8 seconds — near-real-time, not instant like a chat app.
-- Cover images are flat-color Canvas drawings, not AI-generated artwork.
-- The passphrase gate on `admin.html`/`dashboard.html` is a basic shared-secret check
-  suitable for keeping a classroom tool tidy — it is not real user authentication.
-  Anyone with edit access to the Google Sheet can also open `Code.gs` directly, so
-  only share Sheet edit access with people you'd trust with the admin passphrase too.
-- Attendance codes stop nothing from being shared student-to-student — they're a
-  basic deterrent against checking in from home, not a hard guarantee of presence.
+## What got removed from the old version, and why
 
-## If a CSS/JS change doesn't seem to show up after you push it
+Attendance codes, the admin dashboard, live comments, and the Google Sheet
+backend all existed to support multiple people reading and writing data at the
+same time. Since you're the only one editing content now (students only submit
+via email, they don't write to the site), none of that infrastructure is needed
+— and removing it also removes the entire class of bugs that came with keeping
+a live spreadsheet and a deployed script in sync with the website.
 
-Every page loads `styles.css`, `config.js`, and `app.js` with a `?v=6` version tag
-on the end. Browsers and GitHub's CDN cache these files aggressively, so after
-pushing a real change to any of them, bump that number in all eight HTML files
-(find-and-replace `?v=6` → `?v=7`, etc.) — that forces every visitor's browser to
-fetch the new version instead of quietly reusing an old cached copy. If you ever
-see "the update doesn't seem to have applied," this is almost always why — try a
-hard refresh (Ctrl/Cmd+Shift+R) first, and bump the version number if that doesn't
-clear it.
+If you used the old Apps Script version, you can leave that Google Sheet and
+deployment alone (it costs nothing sitting idle) or delete them — this new
+version doesn't call them at all.
+
+## Midterm progress report (EMI)
+`site/midterm.html` + `site/midterm.js`: group form for lesson-plan and Base44 game progress.
+Press "Open email" -> mailto to the instructor with the report in the body (long reports are copied to clipboard instead).
+Edit questions in midterm.html; required fields are listed in the REQUIRED array in midterm.js.
