@@ -303,7 +303,16 @@ function generateCoverCanvas(canvasEl, { title, sub, colorHex }) {
 // ---------- Submit progress (mailto — no server involved) ----------
 function applySubmitFormText(isEmi) {
   const callout = document.getElementById("midtermCallout");
-  if (callout) callout.style.display = isEmi ? "block" : "none";
+  if (callout) {
+    callout.style.display = "block";
+    document.getElementById("midtermTitle").textContent = isEmi ? "Midterm progress report (required)" : "期中進度回報（必繳）";
+    document.getElementById("midtermText").textContent = isEmi
+      ? "Each group sends one report covering the lesson plan and the Base44 game."
+      : "每人繳交一份，內容包含實證基礎、演示／試教設計與 AI 使用紀錄。";
+    const lnk = document.getElementById("midtermLink");
+    lnk.textContent = isEmi ? "Open the midterm report form" : "開啟期中進度回報表單";
+    lnk.setAttribute("href", isEmi ? "midterm.html" : "midterm-grad.html");
+  }
   document.getElementById("lblWho").textContent = isEmi ? "Your name or group" : "您的姓名或組別";
   document.getElementById("lblMsg").textContent = isEmi ? "Progress update" : "進度內容";
   document.getElementById("whoInput").placeholder = isEmi ? "e.g. Group 3, or Chen Yu" : "例如：Group 3，或陳育";

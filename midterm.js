@@ -4,6 +4,7 @@ const COURSE_NAME = "Safety Education (EMI)";
 const STORE_KEY = "emi-midterm-draft-v1";
 const MAILTO_SAFE_LENGTH = 1800; // longer bodies are copied to clipboard instead
 
+try { localStorage.setItem("course", "emi"); } catch (e) {}
 const form = document.getElementById("reportForm");
 const errEl = document.getElementById("reportError");
 const noteEl = document.getElementById("reportNote");

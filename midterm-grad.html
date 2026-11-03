@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>期中進度回報 – 安全教育專題研究</title>
+<link rel="stylesheet" href="styles.css?v=3" />
+</head>
+<body data-course="grad">
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">安全教育專題研究</div>
+    <nav class="quick-nav">
+      <a href="index.html">課程首頁</a>
+      <a href="#a">基本資料</a>
+      <a href="#b">實證基礎</a>
+      <a href="#c">演示與試教</a>
+      <a href="#d">AI 使用</a>
+      <a href="#e">整體狀況</a>
+      <a href="#send">寄出</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <h1>期中進度回報</h1>
+  <p class="lead">個人繳交，每人一份。請完整填寫各區塊後，以電子郵件寄給老師。回答請簡短具體，作品與文獻盡量附連結。</p>
+
+  <div class="report-howto">
+    <b>使用方式</b>
+    <ol>
+      <li>填寫下方表單。內容會隨著輸入自動存在這台電腦的瀏覽器，中途關閉也可以接著填。</li>
+      <li>按「開啟郵件」，會開啟你自己的郵件軟體，收件人與內容都已填好。</li>
+      <li>如果內容較長，網頁會先幫你複製；請在信件本文貼上（Ctrl+V / Cmd+V）後寄出。</li>
+    </ol>
+    <p class="form-note">本頁不會直接寄出任何資料。標示 * 為必填。</p>
+  </div>
+
+  <form class="report" id="reportForm" novalidate>
+
+    <fieldset id="a">
+      <legend>A. 基本資料與主題</legend>
+      <div class="row">
+        <label>姓名 *<input name="name" type="text" /></label>
+        <label>學號 *<input name="sid" type="text" /></label>
+      </div>
+      <label>演示／試教主題（暫定題目）*<input name="title" type="text" placeholder="例如：以健康信念模式設計國小水域安全衛教" /></label>
+      <div class="row">
+        <label>安全主題 *
+          <select name="topic">
+            <option value="">請選擇</option>
+            <option>交通安全</option>
+            <option>水域安全</option>
+            <option>燒燙傷與急救／基本救命術</option>
+            <option>防墜安全</option>
+            <option>火災逃生</option>
+            <option>防災</option>
+            <option>食品藥物安全</option>
+            <option>職業安全</option>
+            <option>資訊安全</option>
+            <option>社區與群聚活動安全</option>
+            <option>其他（請於下方說明）</option>
+          </select>
+        </label>
+        <label>目標對象與情境 *<input name="audience" type="text" placeholder="例如：國小四年級，校內健康課" /></label>
+      </div>
+    </fieldset>
+
+    <fieldset id="b">
+      <legend>B. 實證基礎</legend>
+      <div class="row">
+        <label>文獻整理狀態 *
+          <select name="ev_status">
+            <option value="">請選擇</option>
+            <option>尚未開始</option>
+            <option>已確定問題，開始蒐集文獻</option>
+            <option>已讀部分文獻，整理中</option>
+            <option>文獻整理完成，撰寫證據摘要</option>
+            <option>證據摘要完成</option>
+          </select>
+        </label>
+        <label>已閱讀並使用的文獻篇數 *<input name="ev_n" type="number" min="0" placeholder="篇" /></label>
+      </div>
+      <label>研究問題（建議用 PICO）*<textarea name="ev_pico" rows="3" placeholder="對象 P、介入 I、比較 C、結果 O"></textarea></label>
+      <label>採用的理論或模式，以及如何用在設計上 *<textarea name="ev_theory" rows="3" placeholder="例如：健康信念模式、跨理論模式、Haddon 矩陣"></textarea></label>
+      <label>目前最重要的 3 篇文獻與其啟示 *<textarea name="ev_refs" rows="5" placeholder="每篇：作者、年份、題目或連結；一句話說明它如何影響你的設計"></textarea></label>
+      <label>證據的限制或不足之處 *<textarea name="ev_gap" rows="2" placeholder="例如：多為國外研究、缺少台灣資料、樣本小"></textarea></label>
+    </fieldset>
+
+    <fieldset id="c">
+      <legend>C. 演示與簡單試教（或介入）</legend>
+      <div class="row">
+        <label>呈現形式 *
+          <select name="d_form">
+            <option value="">請選擇</option>
+            <option>簡單試教</option>
+            <option>簡單介入</option>
+            <option>互動遊戲（含實證理論應用）</option>
+            <option>其他（請於下方說明）</option>
+          </select>
+        </label>
+        <label>設計狀態 *
+          <select name="d_status">
+            <option value="">請選擇</option>
+            <option>僅有構想</option>
+            <option>目標與流程大綱</option>
+            <option>第一版完整設計</option>
+            <option>已依回饋修改</option>
+            <option>已完成，待演示</option>
+          </select>
+        </label>
+      </div>
+      <div class="row">
+        <label>完成度（%）*<input name="d_pct" type="number" min="0" max="100" placeholder="0 到 100" /></label>
+        <label>預計演示場次 *
+          <select name="d_slot">
+            <option value="">請選擇</option>
+            <option>第 14 週（12/2）</option>
+            <option>第 15 週（12/9）</option>
+            <option>尚未決定</option>
+          </select>
+        </label>
+      </div>
+      <label>學習（或介入）目標，2 到 3 條且可測量 *<textarea name="d_obj" rows="3" placeholder="完成後，對象能夠 ……"></textarea></label>
+      <label>活動流程與時間分配 *<textarea name="d_flow" rows="4" placeholder="例如：5 分鐘引起動機、15 分鐘活動、10 分鐘討論"></textarea></label>
+      <label>實證與設計的對應：哪個證據支持哪個設計？ *<textarea name="d_map" rows="3" placeholder="例如：因文獻 A 顯示 …，所以活動 2 採 …"></textarea></label>
+      <label>如何評估成效 *<textarea name="d_eval" rows="2" placeholder="前後測、小測驗、觀察表、回饋問卷"></textarea></label>
+      <label>教案或素材連結<input name="d_link" type="url" placeholder="https://..." /></label>
+    </fieldset>
+
+    <fieldset id="d">
+      <legend>D. AI 使用紀錄</legend>
+      <label>使用了哪些 AI 工具，用在哪些工作？ *<textarea name="ai_tools" rows="3" placeholder="例如：用 AI 整理文獻摘要初稿、用 AI 討論活動設計"></textarea></label>
+      <label>一次有幫助的提問（附提問內容）*<textarea name="ai_good" rows="3"></textarea></label>
+      <label>一次 AI 出錯（如不存在的文獻、錯誤內容），你如何發現與查核 *<textarea name="ai_bad" rows="3"></textarea></label>
+      <label>你如何標註並查核 AI 協助的部分？ *<textarea name="ai_verify" rows="2" placeholder="所有引用文獻須自行查到原文確認；AI 協助範圍須標註"></textarea></label>
+    </fieldset>
+
+    <fieldset id="e">
+      <legend>E. 整體狀況與後續</legend>
+      <div class="row">
+        <label>目前整體進度 *
+          <select name="overall">
+            <option value="">請選擇</option>
+            <option>順利</option>
+            <option>稍微落後</option>
+            <option>嚴重落後</option>
+          </select>
+        </label>
+        <label>期中前累計投入時數<input name="hours" type="number" min="0" placeholder="小時" /></label>
+      </div>
+      <label>目前最大困難 *<textarea name="blocker" rows="2"></textarea></label>
+      <label>需要老師或助教協助的地方<textarea name="help" rows="2"></textarea></label>
+      <label>演示前的三個里程碑與日期 *<textarea name="next" rows="4" placeholder="1. ...&#10;2. ...&#10;3. ..."></textarea></label>
+    </fieldset>
+
+    <fieldset id="send">
+      <legend>寄出報告</legend>
+      <div class="field-error" id="reportError" role="alert"></div>
+      <div class="btn-row">
+        <button class="btn" type="submit" id="openMailBtn">開啟郵件</button>
+        <button class="btn btn-secondary" type="button" id="copyBtn">複製報告文字</button>
+        <button class="btn btn-secondary" type="button" id="downloadBtn">下載 .txt</button>
+        <button class="btn btn-ghost" type="button" id="clearBtn">清除表單</button>
+      </div>
+      <p class="form-note" id="reportNote"></p>
+      <details class="preview">
+        <summary>預覽郵件內容</summary>
+        <pre id="previewText"></pre>
+      </details>
+    </fieldset>
+
+  </form>
+</div>
+
+<script src="midterm-grad.js?v=1"></script>
+</body>
+</html>
