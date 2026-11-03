@@ -4,21 +4,23 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Safety Education Course Site</title>
-<link rel="stylesheet" href="styles.css?v=3" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css?v=5" />
 </head>
 <body>
 
 <header class="site-header">
   <div class="header-inner">
-    <div class="brand" id="brandText">Safety Education</div>
+    <div class="brand disp" id="brandText">Safety Education</div>
     <nav class="quick-nav">
-      <a href="#top" id="navHome">Home</a>
       <a href="#objectives" id="navObjectives">Objectives</a>
       <a href="#grading" id="navGrading">Grading</a>
-      <a href="#materials" id="navMaterials">Materials</a>
+      <a href="#materials" id="navMaterials">Weekly materials</a>
       <a href="#showcase" id="navShowcase">Showcase</a>
       <a href="#references" id="navReferences">References</a>
-      <a href="#submit" id="navSubmit">Submit</a>
+      <a href="#submit" id="navSubmit" class="cta">Submit progress</a>
     </nav>
   </div>
 </header>
@@ -30,40 +32,54 @@
     <button data-course="grad">安全教育專題研究</button>
   </div>
 
-  <h1 id="pageTitle">Safety Education</h1>
-  <p class="lead" id="pageLead"></p>
+  <section class="hero">
+    <h1 class="disp" id="pageTitle">Safety Education</h1>
+    <p class="lead" id="pageLead"></p>
+    <div class="chips" id="topicChips"></div>
+  </section>
 
-  <h2 id="objectives"><span id="objectivesHeading">Course objectives</span></h2>
-  <ul class="objectives-list" id="objectivesList"></ul>
+  <h2 id="grading" class="disp"><span id="gradingHeading">Grading</span></h2>
+  <div class="grade-bar" id="gradingBar"></div>
+  <div class="legend" id="gradingPanel"></div>
 
-  <h2 id="grading"><span id="gradingHeading">Grading</span></h2>
-  <div class="grading-panel" id="gradingPanel"></div>
+  <h2 id="objectives" class="disp"><span id="objectivesHeading">Course objectives</span></h2>
+  <div class="obj" id="objectivesList"></div>
 
-  <h2 id="methods"><span id="methodsHeading">Teaching methods</span></h2>
-  <ul class="methods-list" id="methodsList"></ul>
+  <h2 id="methods" class="disp"><span id="methodsHeading">Teaching methods</span></h2>
+  <div class="pills" id="methodsList"></div>
+  <p class="note-text" id="methodsNote"></p>
 
-  <h2 id="ai-policy"><span id="aiPolicyHeading">AI use policy</span></h2>
-  <p class="lead" id="aiPolicyText"></p>
-  <ul class="sdgs-list" id="sdgsList"></ul>
+  <h2 id="ai-policy" class="disp"><span id="aiPolicyHeading">AI use policy</span></h2>
+  <p class="note-text" id="aiPolicyText"></p>
+  <div class="pills" id="sdgsList"></div>
 
-  <h2 id="materials"><span id="materialsHeading">Weekly materials</span></h2>
-  <div class="grid" id="materialsGrid"></div>
+  <h2 id="materials" class="disp"><span id="materialsHeading">Weekly materials</span></h2>
+  <div class="mat-tools">
+    <p class="sub" id="materialsSub"></p>
+    <div>
+      <button type="button" class="mini-btn" id="expandAll">Expand all</button>
+      <button type="button" class="mini-btn" id="collapseAll">Collapse all</button>
+    </div>
+  </div>
+  <div class="weeks" id="materialsGrid"></div>
 
-  <h2 id="showcase"><span id="showcaseHeading">Student showcase</span></h2>
+  <h2 id="showcase" class="disp"><span id="showcaseHeading">Student showcase</span></h2>
   <div class="grid" id="showcaseGrid"></div>
 
-  <h2 id="groupsHeading" style="display:none;">This semester's groups</h2>
+  <h2 id="groupsHeading" class="disp" style="display:none;">This semester's groups</h2>
   <div class="grid" id="groupsGrid"></div>
 
-  <h2 id="references"><span id="referencesHeading">References</span></h2>
+  <h2 id="references" class="disp"><span id="referencesHeading">References</span></h2>
   <ul class="references-list" id="referencesList"></ul>
   <p class="form-note" id="supportNote"></p>
 
-  <h2 id="submit"><span id="submitHeading">Submit progress</span></h2>
+  <h2 id="submit" class="disp"><span id="submitHeading">Submit progress</span></h2>
   <div class="midterm-callout" id="midtermCallout">
-    <b id="midtermTitle">Midterm progress report (required)</b>
-    <span id="midtermText">Each group sends one report covering the lesson plan and the Base44 game.</span>
-    <br /><a href="midterm.html" id="midtermLink">Open the midterm report form</a>
+    <div>
+      <b class="disp" id="midtermTitle">Midterm progress report (required)</b>
+      <span id="midtermText">Each group sends one report covering the lesson plan and the Base44 game.</span>
+    </div>
+    <a class="btn" href="midterm.html" id="midtermLink">Open the midterm report form</a>
   </div>
   <form class="stack" id="submitForm">
     <label><span id="lblWho">Your name or group</span><input id="whoInput" type="text" /></label>
@@ -75,6 +91,6 @@
 
 </div>
 
-<script src="script.js?v=4"></script>
+<script src="script.js?v=5"></script>
 </body>
 </html>
