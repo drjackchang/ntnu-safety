@@ -241,7 +241,7 @@ const DATA = {
           { "order": 5, "time": "17:40–18:00", "group": "Group 6", "topic": "Crowd Safety", "title": "Crowd Ops Master / 群眾安全與兒童防護", "members": "彭品瑄 (Emma)、彭宥慈 (Eunice)、馬崇予 (Cookie)" }
         ] },
         { "date": "12/15", "label": "Session 2", "slots": [
-          { "order": 6, "time": "16:20–16:40", "group": "Group 11", "topic": "Cyber & Fall Safety", "title": "Cyber Safety Escape room", "members": "楊雅涵、許秀華" },
+          { "order": 6, "time": "16:20–16:40", "group": "Group 11", "topic": "Cyber Safety", "title": "Cyber Safety Escape room", "members": "楊雅涵、許秀華" },
           { "order": 7, "time": "16:40–17:00", "group": "Group 1", "topic": "Traffic Safety", "title": "No Break Beat/失速節拍", "members": "曹詠淇 (Oge)、陳亭孜 (Gigi)" },
           { "order": 8, "time": "17:00–17:20", "group": "Group 10", "topic": "Food & Drug Safety", "title": "Kitchen Safety", "members": "阮范燕薇 (Victoria)、吳其諭 (Zellie)、張芊宥 (Yoyo)" },
           { "order": 9, "time": "17:20–17:40", "group": "Group 5", "topic": "Food & Drug Safety", "title": "Bento Defence: Lunch Safety Mission", "members": "陳歆淇 (Cynthia)" },
