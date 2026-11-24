@@ -230,6 +230,25 @@ const DATA = {
         "color": "7d1322"
       }
     ],
+    "presentations": {
+      "info": "Class time 16:20–18:00 (no break) · 20 minutes per group",
+      "sessions": [
+        { "date": "12/8", "label": "Session 1", "slots": [
+          { "order": 1, "time": "16:20–16:40", "group": "Group 3", "topic": "Water Safety", "title": "水域安全情境模擬 (國中七年級)", "members": "黃御哲 (Alan)" },
+          { "order": 2, "time": "16:40–17:00", "group": "Group 7", "topic": "Food & Drug Safety", "title": "Campus Safe Swipe / 侏儸紀公園", "members": "賴宸浩 (Bert)、雷博鈞 (Ray)" },
+          { "order": 3, "time": "17:00–17:20", "group": "Group 2", "topic": "Traffic Safety", "title": "Sober Steer Path / 交通安全專案", "members": "許恩維 (Andrew)、康牧恩 (Solomon)、王奕婷 (Iris)" },
+          { "order": 4, "time": "17:20–17:40", "group": "Group 9", "topic": "Food & Drug Safety", "title": "3D Kitchen Safety Simulation", "members": "侯愛雯、林明珠 (Michelle)" },
+          { "order": 5, "time": "17:40–18:00", "group": "Group 6", "topic": "Crowd Safety", "title": "Crowd Ops Master / 群眾安全與兒童防護", "members": "彭品瑄 (Emma)、彭宥慈 (Eunice)、馬崇予 (Cookie)" }
+        ] },
+        { "date": "12/15", "label": "Session 2", "slots": [
+          { "order": 6, "time": "16:20–16:40", "group": "Group 11", "topic": "Cyber & Fall Safety", "title": "Chirpy Cyber Run / Fall Prevention", "members": "楊雅涵、許秀華" },
+          { "order": 7, "time": "16:40–17:00", "group": "Group 1", "topic": "Traffic Safety", "title": "Physics of Speed / 交通安全遊戲", "members": "曹詠淇 (Oge)、陳亭孜 (Gigi)" },
+          { "order": 8, "time": "17:00–17:20", "group": "Group 10", "topic": "Road & Home Safety", "title": "全能安全特攻隊 / 3D Home Safety Explorer", "members": "阮范燕薇 (Victoria)、吳其諭 (Zellie)、張芊宥 (Yoyo)" },
+          { "order": 9, "time": "17:20–17:40", "group": "Group 5", "topic": "Food & Drug Safety", "title": "Safe Town Squad / 食藥安全", "members": "陳歆淇 (Cynthia)" },
+          { "order": 10, "time": "17:40–18:00", "group": "Group 8", "topic": "Food Safety", "title": "Safe View Path / 食品安全互動遊戲", "members": "陳蓉蓉 (Violet)、陳芳兒 (Krysie)、余麗芳 (Claire)" }
+        ] }
+      ]
+    },
     "groups": [
       {
         "name": "Group 1",
@@ -445,7 +464,8 @@ const DATA = {
         "color": "00337A"
       }
     ],
-    "groups": null
+    "groups": null,
+    "presentations": null
   }
 };
 
@@ -630,6 +650,7 @@ function renderAll() {
   setText("collapseAll", isEmi ? "Collapse all" : "全部收合");
   setText("showcaseHeading", isEmi ? "Student showcase" : "歷年學生成果");
   setText("groupsHeading", "This semester's groups");
+  setText("presentationsHeading", "Final presentation schedule");
   setText("referencesHeading", isEmi ? "References" : "參考書目");
   setText("submitHeading", isEmi ? "Submit progress" : "進度回報");
 
@@ -641,6 +662,7 @@ function renderAll() {
   renderMaterials(d, isEmi);
   renderShowcase(d);
   renderGroups(d, isEmi);
+  renderPresentations(d, isEmi);
   renderReferences(d);
   applySubmitFormText(isEmi);
 }
@@ -761,6 +783,27 @@ function renderGroups(d, isEmi) {
   heading.style.display = "flex";
   host.innerHTML = d.groups.map((g) => `
     <div class="group-card"><p class="group-name">${escapeHtml(g.name)}</p><p class="group-members">${escapeHtml(g.members)}</p></div>`).join("");
+}
+
+function renderPresentations(d, isEmi) {
+  const sec = document.getElementById("presentationsSection");
+  const host = document.getElementById("presentationsGrid");
+  if (!isEmi || !d.presentations) { sec.style.display = "none"; host.innerHTML = ""; return; }
+  sec.style.display = "";
+  document.getElementById("presentationsInfo").textContent = d.presentations.info;
+  host.innerHTML = d.presentations.sessions.map((ses) => `
+    <div class="pres-session">
+      <h3 class="pres-date disp">${escapeHtml(ses.date)} <span>${escapeHtml(ses.label)}</span></h3>
+      ${ses.slots.map((x) => `
+      <div class="pres-row">
+        <div class="pres-order">${x.order}</div>
+        <div class="pres-main">
+          <p class="pres-top"><b>${escapeHtml(x.group)}</b> · ${escapeHtml(x.topic)}<span class="pres-time">${escapeHtml(x.time)}</span></p>
+          <p class="pres-title">${escapeHtml(x.title)}</p>
+          <p class="pres-members">${escapeHtml(x.members)}</p>
+        </div>
+      </div>`).join("")}
+    </div>`).join("");
 }
 
 document.getElementById("expandAll").addEventListener("click", () => document.querySelectorAll("details.w").forEach((x) => (x.open = true)));
