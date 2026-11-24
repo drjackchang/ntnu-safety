@@ -482,6 +482,9 @@ const RES = {
     play: [
       { t: "Emojis and First Aid – IFRC Global First Aid Reference Centre", u: "https://www.globalfirstaidcentre.org/resource/online-game-emojis-and-first-aid/", k: "game" },
       { t: "First Aid Action Hero – St John Ambulance Victoria", u: "https://stjohnvic.com.au/community-programs/action-hero/", k: "game", n: "Australia · free iPhone/iPad game for ages 5+; teaches the DRSABCD action plan", new: true },
+    ],
+    files: [
+      { t: "EMS Grand Bingo — CPR / OHCA resuscitation lesson plan (115-1)", u: "files/115-1_Safety_Education_EMI_Lesson_Plan.docx", k: "sheet", n: "60-min station-rotation lesson plan: Bingo warm-up + QCPR manikin stations" },
     ] },
   falls: { emoji: "🪜", color: "#8a6bf0",
     reading: [
@@ -685,7 +688,7 @@ function section(key, items, isEmi, asQuestions) {
   const lis = asQuestions
     ? items.map((q) => `<li class="q">${escapeHtml(q)}</li>`).join("")
     : key === "files"
-      ? items.map((f) => `<li>${escapeHtml(f)}</li>`).join("")
+      ? items.map((f) => (typeof f === "string" ? `<li>${escapeHtml(f)}</li>` : resItem(f, isEmi))).join("")
       : items.map((it) => resItem(it, isEmi)).join("");
   return `<div class="sec"><h4>${escapeHtml(tr(isEmi, L.sec[key]))}</h4><ul>${lis}</ul></div>`;
 }
