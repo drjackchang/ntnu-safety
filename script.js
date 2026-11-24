@@ -141,6 +141,14 @@ const DATA = {
         "studio": false,
         "topic": "Final Demonstration & Peer Review",
         "desc": "Team presentations of AI-assisted interactive safety-education games; peer and instructor evaluation against instructional-design criteria."
+      },
+      {
+        "week": 17,
+        "date": "11/24",
+        "key": "cprskills",
+        "studio": false,
+        "topic": "Special Session: CPR / BLS Skills Practicum",
+        "desc": "Station-rotation CPR/BLS skills session — EMS Grand Bingo warm-up followed by QCPR-manikin stations covering compression & ventilation quality, team roles, and integrated OHCA scenarios."
       }
     ],
     "objectives": [
@@ -362,6 +370,13 @@ const DATA = {
         "key": "final",
         "topic": "綜合演示、同儕互評與課程總結",
         "desc": "綜合反思AI輔助研究與介入設計歷程之心得與限制。"
+      },
+      {
+        "week": 17,
+        "date": "11/24",
+        "key": "cprskills",
+        "topic": "特別場次：CPR／BLS 技能實作",
+        "desc": "站點輪替式CPR／BLS技能練習——EMS Grand Bingo暖身，接續QCPR假人站點（壓胸與通氣品質、團隊角色分工、整合式OHCA情境）。"
       }
     ],
     "objectives": [
@@ -559,6 +574,10 @@ const RES = {
     ] },
   plan: { emoji: "📝", color: "#0f9aa8" },
   final: { emoji: "🏆", color: "#a6192e" },
+  cprskills: { emoji: "🫀", color: "#d1495b",
+    files: [
+      { t: "EMS Grand Bingo — CPR / OHCA resuscitation lesson plan (115-1)", u: "files/115-1_Safety_Education_EMI_Lesson_Plan.docx", k: "sheet", n: "60-min station-rotation lesson plan: Bingo warm-up + QCPR manikin stations" },
+    ] },
 };
 const CHIPS = [
   { key: "traffic", en: "Traffic", zh: "交通" }, { key: "water", en: "Water", zh: "水域" },
